@@ -2,9 +2,11 @@ import * as dotenv from "dotenv";
 
 import { HardhatUserConfig, task } from "hardhat/config";
 
+import "@openzeppelin/hardhat-upgrades";
+import "@nomicfoundation/hardhat-toolbox";
 import "hardhat-deploy";
-import "@nomiclabs/hardhat-ethers";
-import "@nomiclabs/hardhat-etherscan";
+import "@nomicfoundation/hardhat-ethers";
+import "@nomicfoundation/hardhat-verify";
 import "@nomicfoundation/hardhat-chai-matchers";
 import "@typechain/hardhat";
 import "hardhat-gas-reporter";
@@ -31,12 +33,12 @@ const config: HardhatUserConfig = {
   },
   networks: {
     hardhat: {
-      chainId: process.env.FORKING == "true" ? 1261120 : 31337,
+      chainId: process.env.FORKING == "true" ? 42161 : 31337,
       forking: {
         url:
-            "https://rpc.startale.com/zkatana" /*+
-          (process.env.INFURA_KEY !== undefined ? process.env.INFURA_KEY : "")*/,
-        blockNumber: 547415,
+            "https://arbitrum-mainnet.infura.io/v3/" +
+            (process.env.INFURA_KEY !== undefined ? process.env.INFURA_KEY : ""),
+        blockNumber: 203592328,
         enabled: process.env.FORKING !== undefined && process.env.FORKING == "true" ? true : false,
       },
       accounts: {
@@ -93,7 +95,27 @@ const config: HardhatUserConfig = {
   namedAccounts: {
     deployer: {
       default: 0,
-      42161: 0,
+      42161: 0, //TODO: set correct address
+    },
+    deployerMultisig: {
+      default: 1,
+      42161: 1, //TODO: set correct address
+    },
+    admin: {
+      default: 2,
+      42161: 2, //TODO: set correct address
+    },
+    guardian: {
+      default: 3,
+      42161: 3, //TODO: set correct address
+    },
+    merkleManager: {
+      default: 4,
+      42161: 4, //TODO: set correct address
+    },
+    referralManager: {
+      default: 5,
+      42161: 5, //TODO: set correct address
     },
   },
 };
