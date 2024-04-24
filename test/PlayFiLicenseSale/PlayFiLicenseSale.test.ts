@@ -154,6 +154,89 @@ describe("PlayFiLicenseSale", () => {
           await expect(users[10].PlayFiLicenseSale.claimLicenseTeam(1,data3,proof)).to.be.revertedWithCustomError(contracts.PlayFiLicenseSale, "IndividualClaimCapExceeded");
           expect(await contracts.PlayFiLicenseSale.teamClaimsPerAddress(users[10].address)).to.be.equal(2);
       });
+
+      it("Claiming a friends & family license cannot be done when the friends & family sale is not active", async function () {
+          await expect(users[10].PlayFiLicenseSale.claimLicenseFriendsFamily(1,"0x",[])).to.be.revertedWithCustomError(contracts.PlayFiLicenseSale,"FriendsFamilySaleNotActive");
+      });
+
+      it("Claiming friends & family licenses cannot be done for more than the individual cap", async function () {
+          await guardian.PlayFiLicenseSale.setFriendsFamilySale(true);
+          const data = ethers.AbiCoder.defaultAbiCoder().encode(["uint256","uint256"],[1,0]);
+          await expect(users[10].PlayFiLicenseSale.claimLicenseFriendsFamily(2,data,[])).to.be.revertedWithCustomError(contracts.PlayFiLicenseSale,"IndividualClaimCapExceeded");
+      });
+
+      it("Claiming friends & family licenses cannot be done if the index is incorrect", async function () {
+          await guardian.PlayFiLicenseSale.setFriendsFamilySale(true);
+          let tree = new ClaimsTree([
+              {account: users[10].address, claimCap: BigInt("2")},
+              {account: users[9].address, claimCap: BigInt("2")}
+          ]);
+          await merkleManager.PlayFiLicenseSale.setFriendsFamilyMerkleRoot(tree.getHexRoot());
+          const proof = tree.getProof(0, users[10].address, BigInt("2"));
+          const data = ethers.AbiCoder.defaultAbiCoder().encode(["uint256","uint256"],[1,2]);
+          await expect(users[10].PlayFiLicenseSale.claimLicenseFriendsFamily(1,data,proof)).to.be.revertedWithCustomError(contracts.PlayFiLicenseSale,"InvalidProof");
+      });
+
+      it("Claiming friends & family licenses cannot be done if the claimCap is incorrect", async function () {
+          await guardian.PlayFiLicenseSale.setFriendsFamilySale(true);
+          let tree = new ClaimsTree([
+              {account: users[10].address, claimCap: BigInt("2")},
+              {account: users[9].address, claimCap: BigInt("2")}
+          ]);
+          await merkleManager.PlayFiLicenseSale.setFriendsFamilyMerkleRoot(tree.getHexRoot());
+          const proof = tree.getProof(0, users[10].address, BigInt("2"));
+          const data = ethers.AbiCoder.defaultAbiCoder().encode(["uint256","uint256"],[0,1]);
+          await expect(users[10].PlayFiLicenseSale.claimLicenseFriendsFamily(1,data,proof)).to.be.revertedWithCustomError(contracts.PlayFiLicenseSale,"InvalidProof");
+      });
+
+      it("Claiming friends & family licenses cannot be done with another address", async function () {
+          await guardian.PlayFiLicenseSale.setFriendsFamilySale(true);
+          let tree = new ClaimsTree([
+              {account: users[10].address, claimCap: BigInt("2")},
+              {account: users[9].address, claimCap: BigInt("2")}
+          ]);
+          await merkleManager.PlayFiLicenseSale.setFriendsFamilyMerkleRoot(tree.getHexRoot());
+          const proof = tree.getProof(0, users[10].address, BigInt("2"));
+          const data = ethers.AbiCoder.defaultAbiCoder().encode(["uint256","uint256"],[0,2]);
+          await expect(users[11].PlayFiLicenseSale.claimLicenseFriendsFamily(1,data,proof)).to.be.revertedWithCustomError(contracts.PlayFiLicenseSale,"InvalidProof");
+      });
+
+      it("Claiming friends & family licenses cannot be done if the payment is insufficient", async function () {
+          await admin.PlayFiLicenseSale.setTiers([1],[ethers.parseEther("0.01")],[1],[1]);
+          await guardian.PlayFiLicenseSale.setFriendsFamilySale(true);
+          let tree = new ClaimsTree([
+              {account: users[10].address, claimCap: BigInt("2")},
+              {account: users[9].address, claimCap: BigInt("2")}
+          ]);
+          await merkleManager.PlayFiLicenseSale.setFriendsFamilyMerkleRoot(tree.getHexRoot());
+          const proof = tree.getProof(0, users[10].address, BigInt("2"));
+          //claim 1 -- should succeed
+          const data = ethers.AbiCoder.defaultAbiCoder().encode(["uint256","uint256"],[0,2]);
+          await expect(users[10].PlayFiLicenseSale.claimLicenseFriendsFamily(2,data,proof,{value: ethers.parseEther("0.005")})).to.be.revertedWithCustomError(contracts.PlayFiLicenseSale, "InsufficientPayment");
+          expect(await contracts.PlayFiLicenseSale.friendsFamilyClaimsPerAddress(users[10].address)).to.be.equal(0);
+      });
+
+      it("Claiming friends & family licenses claims new friends & family licenses, even in 2 times and sets the correct on-chain state", async function () {
+          await admin.PlayFiLicenseSale.setTiers([1],[ethers.parseEther("0.01")],[1],[1]);
+          await guardian.PlayFiLicenseSale.setFriendsFamilySale(true);
+          let tree = new ClaimsTree([
+              {account: users[10].address, claimCap: BigInt("2")},
+              {account: users[9].address, claimCap: BigInt("2")}
+          ]);
+          await merkleManager.PlayFiLicenseSale.setFriendsFamilyMerkleRoot(tree.getHexRoot());
+          const proof = tree.getProof(0, users[10].address, BigInt("2"));
+          //claim 1 -- should succeed
+          const data = ethers.AbiCoder.defaultAbiCoder().encode(["uint256","uint256"],[0,2]);
+          await expect(users[10].PlayFiLicenseSale.claimLicenseFriendsFamily(1,data,proof,{value: ethers.parseEther("0.01")})).to.emit(contracts.PlayFiLicenseSale,"FriendsFamilyLicensesClaimed").withArgs(users[10].address,1);
+          //claim 2 -- should succeed
+          const data2 = ethers.AbiCoder.defaultAbiCoder().encode(["uint256","uint256"],[0,2]);
+          await expect(users[10].PlayFiLicenseSale.claimLicenseFriendsFamily(1,data2,proof,{value: ethers.parseEther("0.01")})).to.emit(contracts.PlayFiLicenseSale,"FriendsFamilyLicensesClaimed").withArgs(users[10].address,1);
+          //claim 3 -- should fail
+          const data3 = ethers.AbiCoder.defaultAbiCoder().encode(["uint256","uint256"],[0,2]);
+          await expect(users[10].PlayFiLicenseSale.claimLicenseFriendsFamily(1,data3,proof,{value: ethers.parseEther("0.01")})).to.be.revertedWithCustomError(contracts.PlayFiLicenseSale, "IndividualClaimCapExceeded");
+          expect(await ethers.provider.getBalance(contracts.PlayFiLicenseSale.getAddress())).to.be.equal(ethers.parseEther("0.02"));
+          expect(await contracts.PlayFiLicenseSale.friendsFamilyClaimsPerAddress(users[10].address)).to.be.equal(2);
+      });
   });
 
 });
