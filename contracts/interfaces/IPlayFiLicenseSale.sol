@@ -80,6 +80,8 @@ interface IPlayFiLicenseSale
     error WithdrawalFailed();
     error InvalidTierInputs();
     error AccessDenied();
+    error InvalidDiscount();
+    error InvalidCommission();
 
     function claimLicenseTeam(uint256 amount, bytes calldata data, bytes32[] calldata merkleProof) external;
 

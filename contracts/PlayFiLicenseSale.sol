@@ -8,7 +8,6 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 
 import "./interfaces/IPlayFiLicenseSale.sol";
 
-
 /*
 
                  .-+*###+-.
@@ -264,9 +263,11 @@ IPlayFiLicenseSale
     }
 
     function _setReferral(string memory code, address receiver, uint256 commission, uint256 discount) internal {
-        referrals[code].discountPercentage == discount;
-        referrals[code].commissionPercentage == commission;
-        referrals[code].receiver == receiver;
+        if(discount > 50) revert InvalidDiscount();
+        if(commission > 50) revert InvalidCommission();
+        referrals[code].discountPercentage = discount;
+        referrals[code].commissionPercentage = commission;
+        referrals[code].receiver = receiver;
         emit referralUpdated(code, receiver, commission, discount);
     }
 
