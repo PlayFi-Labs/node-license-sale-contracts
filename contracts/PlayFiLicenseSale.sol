@@ -110,7 +110,7 @@ IPlayFiLicenseSale
     /// @notice Claims licenses for team members and make sure they do not exceed their personal claim cap.
     /// @param amount The amount of licenses to claim
     /// @param data Index and claimCap in encoded format
-    /// @param merkleProof The proof used to verify weather the caller is allowed to claim the licenses
+    /// @param merkleProof The proof used to verify whether the caller is allowed to claim the licenses
     function claimLicenseTeam(uint256 amount, bytes calldata data, bytes32[] calldata merkleProof) external {
         if(!teamSaleActive) revert TeamSaleNotActive();
         (uint256 index, uint256 claimCap) = abi.decode(data,(uint256,uint256));
