@@ -15,6 +15,8 @@ import "hardhat-contract-sizer";
 
 dotenv.config();
 
+import "./tasks/verify-playfi-contracts";
+
 const config: HardhatUserConfig = {
   typechain: {
     target: "ethers-v6",
@@ -100,22 +102,27 @@ const config: HardhatUserConfig = {
     deployerMultisig: {
       default: 1,
       42161: 1, //TODO: set correct address
+      421614: "0x571E443ccd1A35fEb3AfCD9F4a72f589Ef7eA785"
     },
     admin: {
       default: 2,
       42161: 2, //TODO: set correct address
+      421614: "0xf558c6EECcf47ce88E644Ce48DD6ca9176e2C23b"
     },
     guardian: {
       default: 3,
       42161: 3, //TODO: set correct address
+      421614: 0
     },
     merkleManager: {
       default: 4,
       42161: 4, //TODO: set correct address
+      421614: 0
     },
     referralManager: {
       default: 5,
       42161: 5, //TODO: set correct address
+      421614: 0
     },
   },
 };
