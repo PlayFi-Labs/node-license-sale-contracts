@@ -243,10 +243,10 @@ IPlayFiLicenseSale
     }
 
     /// @notice Sets tier details
-    /// @param ids the ids of the tiers to set
-    /// @param prices the prices of each tier to set
-    /// @param individualCaps the maximum amount of licenses that can be claimed per address for the tiers.
-    /// @param totalCaps the maximum amount of licenses that can be claimed in total for the tiers.
+    /// @param ids The ids of the tiers to set
+    /// @param prices The prices of each tier to set
+    /// @param individualCaps The maximum amount of licenses that can be claimed per address for the tiers.
+    /// @param totalCaps The maximum amount of licenses that can be claimed in total for the tiers.
     function setTiers(uint256[] calldata ids, uint256[] calldata prices, uint256[] calldata individualCaps, uint256[] calldata totalCaps) external onlyAdmin {
         if(ids.length != prices.length || prices.length != individualCaps.length || individualCaps.length != totalCaps.length) revert InvalidTierInputs();
         for (uint256 i = 0; i < ids.length; ) {
