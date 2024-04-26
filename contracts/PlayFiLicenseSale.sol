@@ -146,7 +146,7 @@ IPlayFiLicenseSale
     /// that they paid enough.
     /// @param amount The amount of licenses to claim
     /// @param data Index and claimCap in encoded format
-    /// @param merkleProof The proof used to verify weather the caller is allowed to claim the licenses
+    /// @param merkleProof The proof used to verify whether the caller is allowed to claim the licenses
     function claimLicenseEarlyAccess(uint256 amount, bytes calldata data, bytes32[] calldata merkleProof) external payable {
         if(!earlyAccessSaleActive) revert EarlyAccessSaleNotActive();
         (uint256 index, uint256 claimCap) = abi.decode(data,(uint256,uint256));
