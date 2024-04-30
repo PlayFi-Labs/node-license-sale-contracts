@@ -17,12 +17,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         proxy: {
             owner: deployerMultisig,
             proxyContract: "OpenZeppelinTransparentProxy",
-            upgradeIndex: 1,
+            upgradeIndex: 2,
         },
     });
 
     return true;
 };
 export default func;
-func.id = "UpgradePlayFiLicenseSale1";
-func.tags = ["UpgradePlayFiLicenseSale1"];
+func.id = "UpgradePlayFiLicenseSale2";
+func.tags = ["UpgradePlayFiLicenseSale2"];

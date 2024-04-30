@@ -374,7 +374,7 @@ describe("PlayFiLicenseSale", () => {
       });
 
       it("Claiming partner licenses cannot be done if the payment is insufficient", async function () {
-          await admin.PlayFiLicenseSale.setTiers([1,2],[ethers.parseEther("0.01"),ethers.parseEther("0.02")],[1,1],[1,1]);
+          await admin.PlayFiLicenseSale.setTiers([1,8],[ethers.parseEther("0.01"),ethers.parseEther("0.02")],[1,1],[1,1]);
           await guardian.PlayFiLicenseSale.setPartnerSale(true);
           let tree = new ClaimsTree([
               {account: users[10].address, claimCap: BigInt("2")},
@@ -442,7 +442,7 @@ describe("PlayFiLicenseSale", () => {
 
           // Special Referral (with code)
           const toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForReferral(2,1,"REFERRAL")).toPay;
-          await expect(users[10].PlayFiLicenseSale.claimLicensePublic(2,1,"REFERRAL",{value: toPay})).to.emit(contracts.PlayFiLicenseSale,"PublicLicensesClaimed").withArgs(users[10].address,2,1,toPay);
+          await expect(users[10].PlayFiLicenseSale.claimLicensePublic(2,1,"REFERRAL",{value: toPay})).to.emit(contracts.PlayFiLicenseSale,"PublicLicensesClaimed").withArgs(users[10].address,2,1,toPay,"REFERRAL");
           expect(await ethers.provider.getBalance(contracts.PlayFiLicenseSale.getAddress())).to.be.equal(ethers.parseEther("0.017"));
           expect(await ethers.provider.getBalance(users[11].address)).to.be.equal(startAmount + ethers.parseEther("0.002"));
           expect(await contracts.PlayFiLicenseSale.publicClaimsPerAddress(users[10].address)).to.be.equal(2);
@@ -450,7 +450,7 @@ describe("PlayFiLicenseSale", () => {
           // Normal Referral (with address in lowercase)
           const startAmount2 = await ethers.provider.getBalance(users[10].address);
           const toPay2 = (await contracts.PlayFiLicenseSale.paymentDetailsForReferral(2,1,users[10].address.toLowerCase())).toPay;
-          await expect(users[12].PlayFiLicenseSale.claimLicensePublic(2,1,users[10].address.toLowerCase(),{value: toPay2})).to.emit(contracts.PlayFiLicenseSale,"PublicLicensesClaimed").withArgs(users[12].address,2,1,toPay2);
+          await expect(users[12].PlayFiLicenseSale.claimLicensePublic(2,1,users[10].address.toLowerCase(),{value: toPay2})).to.emit(contracts.PlayFiLicenseSale,"PublicLicensesClaimed").withArgs(users[12].address,2,1,toPay2,users[10].address.toLowerCase());
           expect(await ethers.provider.getBalance(contracts.PlayFiLicenseSale.getAddress())).to.be.equal(ethers.parseEther("0.035"));
           expect(await ethers.provider.getBalance(users[10].address)).to.be.equal(startAmount2 + ethers.parseEther("0.001"));
           expect(await contracts.PlayFiLicenseSale.publicClaimsPerAddress(users[12].address)).to.be.equal(2);
@@ -469,7 +469,7 @@ describe("PlayFiLicenseSale", () => {
 
           // Node license sale
           const toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForReferral(2,1,"REFERRAL")).toPay;
-          await expect(users[10].PlayFiLicenseSale.claimLicensePublic(2,1,"REFERRAL",{value: toPay})).to.emit(contracts.PlayFiLicenseSale,"PublicLicensesClaimed").withArgs(users[10].address,2,1,toPay);
+          await expect(users[10].PlayFiLicenseSale.claimLicensePublic(2,1,"REFERRAL",{value: toPay})).to.emit(contracts.PlayFiLicenseSale,"PublicLicensesClaimed").withArgs(users[10].address,2,1,toPay,"REFERRAL");
           expect(await ethers.provider.getBalance(contracts.PlayFiLicenseSale.getAddress())).to.be.equal(ethers.parseEther("0.017"));
           expect(await ethers.provider.getBalance(users[11].address)).to.be.equal(startAmount + ethers.parseEther("0.002"));
           expect(await contracts.PlayFiLicenseSale.publicClaimsPerAddress(users[10].address)).to.be.equal(2);
@@ -488,7 +488,7 @@ describe("PlayFiLicenseSale", () => {
 
           // Special Referral (with code)
           const toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForReferral(2,1,"REFERRAL")).toPay;
-          await expect(users[10].PlayFiLicenseSale.claimLicensePublic(2,1,"REFERRAL",{value: toPay})).to.emit(contracts.PlayFiLicenseSale,"PublicLicensesClaimed").withArgs(users[10].address,2,1,toPay);
+          await expect(users[10].PlayFiLicenseSale.claimLicensePublic(2,1,"REFERRAL",{value: toPay})).to.emit(contracts.PlayFiLicenseSale,"PublicLicensesClaimed").withArgs(users[10].address,2,1,toPay,"REFERRAL");
           expect(await ethers.provider.getBalance(contracts.PlayFiLicenseSale.getAddress())).to.be.equal(ethers.parseEther("0.017"));
           expect(await ethers.provider.getBalance(users[11].address)).to.be.equal(startAmount + ethers.parseEther("0.002"));
           expect(await contracts.PlayFiLicenseSale.publicClaimsPerAddress(users[10].address)).to.be.equal(2);
@@ -502,7 +502,7 @@ describe("PlayFiLicenseSale", () => {
           // Normal Referral (with address in lowercase)
           const startAmount2 = await ethers.provider.getBalance(users[10].address);
           const toPay2 = (await contracts.PlayFiLicenseSale.paymentDetailsForReferral(2,1,users[10].address.toLowerCase())).toPay;
-          await expect(users[12].PlayFiLicenseSale.claimLicensePublic(2,1,users[10].address.toLowerCase(),{value: toPay2})).to.emit(contracts.PlayFiLicenseSale,"PublicLicensesClaimed").withArgs(users[12].address,2,1,toPay2);
+          await expect(users[12].PlayFiLicenseSale.claimLicensePublic(2,1,users[10].address.toLowerCase(),{value: toPay2})).to.emit(contracts.PlayFiLicenseSale,"PublicLicensesClaimed").withArgs(users[12].address,2,1,toPay2,users[10].address.toLowerCase());
           expect(await ethers.provider.getBalance(contracts.PlayFiLicenseSale.getAddress())).to.be.equal(ethers.parseEther("0.035"));
           expect(await ethers.provider.getBalance(users[10].address)).to.be.equal(startAmount2 + ethers.parseEther("0.001"));
           expect(await contracts.PlayFiLicenseSale.publicClaimsPerAddress(users[12].address)).to.be.equal(2);
@@ -601,7 +601,7 @@ describe("PlayFiLicenseSale", () => {
       it("setTiers sets the price, individual cap and total cap of the tier. It leaves the total amount of claims for the tiers a is.", async function () {
           await admin.PlayFiLicenseSale.setTiers([1,2],[ethers.parseEther("0.01"),ethers.parseEther("0.02")],[1,2],[2,4]);
           await guardian.PlayFiLicenseSale.setPublicSale(true);
-          await expect(users[10].PlayFiLicenseSale.claimLicensePublic(1,1,"",{value: ethers.parseEther("0.01")})).to.emit(contracts.PlayFiLicenseSale,"PublicLicensesClaimed").withArgs(users[10].address,1,1,ethers.parseEther("0.01"));
+          await expect(users[10].PlayFiLicenseSale.claimLicensePublic(1,1,"",{value: ethers.parseEther("0.01")})).to.emit(contracts.PlayFiLicenseSale,"PublicLicensesClaimed").withArgs(users[10].address,1,1,ethers.parseEther("0.01"),"");
           let tier1 = await contracts.PlayFiLicenseSale.tiers(1);
           expect(tier1[0]).to.be.equal(ethers.parseEther("0.01"));
           expect(tier1[1]).to.be.equal(1);
@@ -713,7 +713,7 @@ describe("PlayFiLicenseSale", () => {
           await admin.PlayFiLicenseSale.setTiers([1,2],[ethers.parseEther("0.01"),ethers.parseEther("0.02")],[1,2],[2,4]);
           await guardian.PlayFiLicenseSale.setPublicSale(true);
           const balanceBefore = await ethers.provider.getBalance(admin.address);
-          await expect(users[10].PlayFiLicenseSale.claimLicensePublic(1,1,"",{value: ethers.parseEther("0.01")})).to.emit(contracts.PlayFiLicenseSale,"PublicLicensesClaimed").withArgs(users[10].address,1,1,ethers.parseEther("0.01"));
+          await expect(users[10].PlayFiLicenseSale.claimLicensePublic(1,1,"",{value: ethers.parseEther("0.01")})).to.emit(contracts.PlayFiLicenseSale,"PublicLicensesClaimed").withArgs(users[10].address,1,1,ethers.parseEther("0.01"),"");
           expect(await ethers.provider.getBalance(contracts.PlayFiLicenseSale.getAddress())).to.be.equal(ethers.parseEther("0.01"));
           const receipt = await (await admin.PlayFiLicenseSale.withdrawProceeds()).wait();
           const feePaid = receipt!.gasUsed * receipt!.gasPrice;

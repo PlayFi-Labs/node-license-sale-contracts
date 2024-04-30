@@ -51,7 +51,7 @@ interface IPlayFiLicenseSale
     event EarlyAccessLicensesClaimed(address indexed account, uint256 amount);
     event PartnerLicensesClaimed(address indexed account, uint256 amount);
     event CommissionPaid(address indexed receiver, uint256 amount);
-    event PublicLicensesClaimed(address indexed account, uint256 amount, uint256 indexed tier, uint256 paid);
+    event PublicLicensesClaimed(address indexed account, uint256 amount, uint256 indexed tier, uint256 paid, string referral);
     event referralUpdated(string code, address indexed receiver, uint256 commission, uint256 discount);
     event TeamMerkleRootSet(bytes32 merkleRoot);
     event FriendsFamilyMerkleRootSet(bytes32 merkleRoot);

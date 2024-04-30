@@ -173,7 +173,7 @@ IPlayFiLicenseSale
         if(amount + claimedLicenses > claimCap) revert IndividualClaimCapExceeded();
         bytes32 node = keccak256(abi.encodePacked(index, msg.sender, claimCap));
         if (!MerkleProof.verify(merkleProof, partnerMerkleRoot, node)) revert InvalidProof();
-        uint256 toPay = tiers[2].price * amount;
+        uint256 toPay = tiers[8].price * amount;
         if(msg.value < toPay) revert InsufficientPayment();
         partnerClaimsPerAddress[msg.sender] += amount;
         totalLicenses += amount;
@@ -203,7 +203,7 @@ IPlayFiLicenseSale
         tiers[tier].totalClaimed += amount;
         publicClaimsPerAddress[msg.sender] += amount;
         totalLicenses += amount;
-        emit PublicLicensesClaimed(msg.sender, amount, tier, toPay);
+        emit PublicLicensesClaimed(msg.sender, amount, tier, toPay, referral);
     }
     /// @notice Calculates the price, commission and discount for X number of licenses in tier Y given referral code Z
     /// @param amount The amount of licenses to claim
