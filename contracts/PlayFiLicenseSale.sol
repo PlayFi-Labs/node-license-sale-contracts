@@ -105,6 +105,8 @@ IPlayFiLicenseSale
 
         standardCommissionPercentage = 5;
         standardDiscountPercentage = 5;
+
+        emit ContractInitialized();
     }
 
     /// @notice Claims licenses for team members and make sure they do not exceed their personal claim cap.
@@ -139,7 +141,7 @@ IPlayFiLicenseSale
         if(msg.value < toPay) revert InsufficientPayment();
         friendsFamilyClaimsPerAddress[msg.sender] += amount;
         totalLicenses += amount;
-        emit FriendsFamilyLicensesClaimed(msg.sender, amount);
+        emit FriendsFamilyLicensesClaimed(msg.sender, toPay, amount);
     }
 
     /// @notice Claims licenses for early access addresses + make sure they do not exceed their personal claim cap and
@@ -158,7 +160,7 @@ IPlayFiLicenseSale
         if(msg.value < toPay) revert InsufficientPayment();
         earlyAccessClaimsPerAddress[msg.sender] += amount;
         totalLicenses += amount;
-        emit EarlyAccessLicensesClaimed(msg.sender, amount);
+        emit EarlyAccessLicensesClaimed(msg.sender, toPay, amount);
     }
 
     /// @notice Claims licenses for partners + make sure they do not exceed their personal claim cap and that
@@ -177,7 +179,7 @@ IPlayFiLicenseSale
         if(msg.value < toPay) revert InsufficientPayment();
         partnerClaimsPerAddress[msg.sender] += amount;
         totalLicenses += amount;
-        emit PartnerLicensesClaimed(msg.sender, amount);
+        emit PartnerLicensesClaimed(msg.sender, toPay, amount);
     }
 
     /// @notice Claims licenses for the public in a specific tier + make sure they do not exceed their personal claim
@@ -194,7 +196,7 @@ IPlayFiLicenseSale
         if(commission > 0) {
             (bool sent, ) = payable(referrals[referral].receiver).call{ value: commission }("");
             if (!sent) revert CommissionPayoutFailed();
-            emit CommissionPaid(referrals[referral].receiver, commission);
+            emit CommissionPaid(referral, referrals[referral].receiver, commission);
         }
         string memory addressAsString = Strings.toHexString(msg.sender);
         if(referrals[addressAsString].discountPercentage == 0) {
@@ -335,7 +337,7 @@ IPlayFiLicenseSale
         referrals[code].discountPercentage = discount;
         referrals[code].commissionPercentage = commission;
         referrals[code].receiver = receiver;
-        emit referralUpdated(code, receiver, commission, discount);
+        emit ReferralUpdated(code, receiver, commission, discount);
     }
 
     modifier onlyAdmin() {
