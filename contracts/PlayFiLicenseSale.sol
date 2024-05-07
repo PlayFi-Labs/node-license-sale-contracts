@@ -8,7 +8,6 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 
 import "./interfaces/IPlayFiLicenseSale.sol";
 
-
 /*
 
                  .-+*###+-.
@@ -37,7 +36,9 @@ import "./interfaces/IPlayFiLicenseSale.sol";
 */
 
 
-
+/// @title PlayFi node license sale contract
+/// @author Archethect
+/// @notice Contract used to handle whitelist and public node license sales in several tiers.
 contract PlayFiLicenseSale is
 Initializable,
 AccessControlUpgradeable,
@@ -104,8 +105,14 @@ IPlayFiLicenseSale
 
         standardCommissionPercentage = 5;
         standardDiscountPercentage = 5;
+
+        emit ContractInitialized();
     }
 
+    /// @notice Claims licenses for team members and make sure they do not exceed their personal claim cap.
+    /// @param amount The amount of licenses to claim
+    /// @param data Index and claimCap in encoded format
+    /// @param merkleProof The proof used to verify whether the caller is allowed to claim the licenses
     function claimLicenseTeam(uint256 amount, bytes calldata data, bytes32[] calldata merkleProof) external {
         if(!teamSaleActive) revert TeamSaleNotActive();
         (uint256 index, uint256 claimCap) = abi.decode(data,(uint256,uint256));
@@ -118,6 +125,11 @@ IPlayFiLicenseSale
         emit TeamLicensesClaimed(msg.sender, amount);
     }
 
+    /// @notice Claims licenses for friends and family + make sure they do not exceed their personal claim cap and that
+    /// they paid enough.
+    /// @param amount The amount of licenses to claim
+    /// @param data Index and claimCap in encoded format
+    /// @param merkleProof The proof used to verify weather the caller is allowed to claim the licenses
     function claimLicenseFriendsFamily(uint256 amount, bytes calldata data, bytes32[] calldata merkleProof) external payable {
         if(!friendsFamilySaleActive) revert FriendsFamilySaleNotActive();
         (uint256 index, uint256 claimCap) = abi.decode(data,(uint256,uint256));
@@ -129,9 +141,14 @@ IPlayFiLicenseSale
         if(msg.value < toPay) revert InsufficientPayment();
         friendsFamilyClaimsPerAddress[msg.sender] += amount;
         totalLicenses += amount;
-        emit FriendsFamilyLicensesClaimed(msg.sender, amount);
+        emit FriendsFamilyLicensesClaimed(msg.sender, toPay, amount);
     }
 
+    /// @notice Claims licenses for early access addresses + make sure they do not exceed their personal claim cap and
+    /// that they paid enough.
+    /// @param amount The amount of licenses to claim
+    /// @param data Index and claimCap in encoded format
+    /// @param merkleProof The proof used to verify whether the caller is allowed to claim the licenses
     function claimLicenseEarlyAccess(uint256 amount, bytes calldata data, bytes32[] calldata merkleProof) external payable {
         if(!earlyAccessSaleActive) revert EarlyAccessSaleNotActive();
         (uint256 index, uint256 claimCap) = abi.decode(data,(uint256,uint256));
@@ -143,9 +160,14 @@ IPlayFiLicenseSale
         if(msg.value < toPay) revert InsufficientPayment();
         earlyAccessClaimsPerAddress[msg.sender] += amount;
         totalLicenses += amount;
-        emit EarlyAccessLicensesClaimed(msg.sender, amount);
+        emit EarlyAccessLicensesClaimed(msg.sender, toPay, amount);
     }
 
+    /// @notice Claims licenses for partners + make sure they do not exceed their personal claim cap and that
+    /// they paid enough.
+    /// @param amount The amount of licenses to claim
+    /// @param data Index and claimCap in encoded format
+    /// @param merkleProof The proof used to verify weather the caller is allowed to claim the licenses
     function claimLicensePartner(uint256 amount, bytes calldata data, bytes32[] calldata merkleProof) external payable {
         if(!partnerSaleActive) revert PartnerSaleNotActive();
         (uint256 index, uint256 claimCap) = abi.decode(data,(uint256,uint256));
@@ -153,13 +175,18 @@ IPlayFiLicenseSale
         if(amount + claimedLicenses > claimCap) revert IndividualClaimCapExceeded();
         bytes32 node = keccak256(abi.encodePacked(index, msg.sender, claimCap));
         if (!MerkleProof.verify(merkleProof, partnerMerkleRoot, node)) revert InvalidProof();
-        uint256 toPay = tiers[2].price * amount;
+        uint256 toPay = tiers[8].price * amount;
         if(msg.value < toPay) revert InsufficientPayment();
         partnerClaimsPerAddress[msg.sender] += amount;
         totalLicenses += amount;
-        emit PartnerLicensesClaimed(msg.sender, amount);
+        emit PartnerLicensesClaimed(msg.sender, toPay, amount);
     }
 
+    /// @notice Claims licenses for the public in a specific tier + make sure they do not exceed their personal claim
+    /// cap and total tier cap. Additionally also make sure that they paid enough.
+    /// @param amount The amount of licenses to claim
+    /// @param tier The tier to buy the licenses from
+    /// @param referral A referral code that can give discounts.
     function claimLicensePublic(uint256 amount, uint256 tier, string calldata referral) external payable {
         if(!publicSaleActive) revert PublicSaleNotActive();
         if(tiers[tier].totalClaimed + amount > tiers[tier].totalCap) revert TotalTierCapExceeded();
@@ -169,7 +196,7 @@ IPlayFiLicenseSale
         if(commission > 0) {
             (bool sent, ) = payable(referrals[referral].receiver).call{ value: commission }("");
             if (!sent) revert CommissionPayoutFailed();
-            emit CommissionPaid(referrals[referral].receiver, commission);
+            emit CommissionPaid(referral, referrals[referral].receiver, commission);
         }
         string memory addressAsString = Strings.toHexString(msg.sender);
         if(referrals[addressAsString].discountPercentage == 0) {
@@ -178,9 +205,15 @@ IPlayFiLicenseSale
         tiers[tier].totalClaimed += amount;
         publicClaimsPerAddress[msg.sender] += amount;
         totalLicenses += amount;
-        emit PublicLicensesClaimed(msg.sender, amount, tier, toPay);
+        emit PublicLicensesClaimed(msg.sender, amount, tier, toPay, referral);
     }
-
+    /// @notice Calculates the price, commission and discount for X number of licenses in tier Y given referral code Z
+    /// @param amount The amount of licenses to claim
+    /// @param tier The tier to buy the licenses from
+    /// @param referral A referral code that can give discounts.
+    /// @return toPay The amount of ETH that should be paid by the claimer.
+    /// @return commission The commission in ETH that the referrer will get.
+    /// @return discount The discount in ETH the claimer will get
     function paymentDetailsForReferral(uint256 amount, uint256 tier, string calldata referral) public view returns (uint256 toPay, uint256 commission, uint256 discount) {
         uint256 fullPrice = tiers[tier].price * amount;
         discount = fullPrice * referrals[referral].discountPercentage / 100;
@@ -188,18 +221,34 @@ IPlayFiLicenseSale
         toPay = fullPrice - discount;
     }
 
+    /// @notice Returns tier details provided a tier id
+    /// @param id The tier id
+    /// @return tier The tier
     function getTier(uint256 id) public view returns(Tier memory tier) {
         tier = tiers[id];
     }
 
+    /// @notice Returns referral details provided a referral id
+    /// @param id The referral id
+    /// @return referral The referral
     function getReferral(string memory id) public view returns(Referral memory referral) {
         referral = referrals[id];
     }
 
+    /// @notice Sets referral details
+    /// @param code The referral code to be used when claiming
+    /// @param receiver The receiver address for the commissions
+    /// @param commission The percentage of the total price to be used as a commission
+    /// @param discount The percentage of the total price to be used as a discount
     function setReferral(string memory code, address receiver, uint256 commission, uint256 discount) public onlyReferralManager {
         _setReferral(code, receiver, commission, discount);
     }
 
+    /// @notice Sets tier details
+    /// @param ids The ids of the tiers to set
+    /// @param prices The prices of each tier to set
+    /// @param individualCaps The maximum amount of licenses that can be claimed per address for the tiers.
+    /// @param totalCaps The maximum amount of licenses that can be claimed in total for the tiers.
     function setTiers(uint256[] calldata ids, uint256[] calldata prices, uint256[] calldata individualCaps, uint256[] calldata totalCaps) external onlyAdmin {
         if(ids.length != prices.length || prices.length != individualCaps.length || individualCaps.length != totalCaps.length) revert InvalidTierInputs();
         for (uint256 i = 0; i < ids.length; ) {
@@ -211,51 +260,70 @@ IPlayFiLicenseSale
         }
     }
 
+    /// @notice Sets the team sale merkle root
+    /// @param _teamMerkleRoot The root of the team sale merkle tree
     function setTeamMerkleRoot(bytes32 _teamMerkleRoot) external onlyMerkleManager {
         teamMerkleRoot = _teamMerkleRoot;
         emit TeamMerkleRootSet(_teamMerkleRoot);
     }
 
+    /// @notice Sets the friends and family sale merkle root
+    /// @param _friendsFamilyMerkleRoot The root of the friends and family sale merkle tree
     function setFriendsFamilyMerkleRoot(bytes32 _friendsFamilyMerkleRoot) external onlyMerkleManager {
         friendsFamilyMerkleRoot = _friendsFamilyMerkleRoot;
         emit FriendsFamilyMerkleRootSet(_friendsFamilyMerkleRoot);
     }
 
+    /// @notice Sets the early access sale merkle root
+    /// @param _earlyAccessMerkleRoot The root of the early access sale merkle tree
     function setEarlyAccessMerkleRoot(bytes32 _earlyAccessMerkleRoot) external onlyMerkleManager {
         earlyAccessMerkleRoot = _earlyAccessMerkleRoot;
         emit EarlyAccessMerkleRootSet(_earlyAccessMerkleRoot);
     }
 
+    /// @notice Sets the partner sale merkle root
+    /// @param _partnerMerkleRoot The root of the partner sale merkle tree
     function setPartnerMerkleRoot(bytes32 _partnerMerkleRoot) external onlyMerkleManager {
         partnerMerkleRoot = _partnerMerkleRoot;
         emit PartnerMerkleRootSet(_partnerMerkleRoot);
     }
 
+    /// @notice Sets the team sale status
+    /// @param status The status to set for the team sale
     function setTeamSale(bool status) external onlyGuardian {
         teamSaleActive = status;
         emit TeamSaleStatusSet(status);
     }
 
+    /// @notice Sets the friends and family sale status
+    /// @param status The status to set for the friends and family sale
     function setFriendsFamilySale(bool status) external onlyGuardian {
         friendsFamilySaleActive = status;
         emit FriendsFamilySaleStatusSet(status);
     }
 
+    /// @notice Sets the early access sale status
+    /// @param status The status to set for the early access sale
     function setEarlyAccessSale(bool status) external onlyGuardian {
         earlyAccessSaleActive = status;
         emit EarlyAccessSaleStatusSet(status);
     }
 
+    /// @notice Sets the partner sale status
+    /// @param status The status to set for the partner sale
     function setPartnerSale(bool status) external onlyGuardian {
         partnerSaleActive = status;
         emit PartnerSaleStatusSet(status);
     }
 
+    /// @notice Sets the public sale status
+    /// @param status The status to set for the public sale
     function setPublicSale(bool status) external onlyGuardian {
         publicSaleActive = status;
         emit PublicSaleStatusSet(status);
     }
 
+    /// @notice Withdraws the sale proceeds
     function withdrawProceeds() public onlyAdmin {
         uint256 amount = address(this).balance;
         (bool sent, ) = payable(msg.sender).call{ value: amount }("");
@@ -264,10 +332,12 @@ IPlayFiLicenseSale
     }
 
     function _setReferral(string memory code, address receiver, uint256 commission, uint256 discount) internal {
-        referrals[code].discountPercentage == discount;
-        referrals[code].commissionPercentage == commission;
-        referrals[code].receiver == receiver;
-        emit referralUpdated(code, receiver, commission, discount);
+        if(discount > 50) revert InvalidDiscount();
+        if(commission > 50) revert InvalidCommission();
+        referrals[code].discountPercentage = discount;
+        referrals[code].commissionPercentage = commission;
+        referrals[code].receiver = receiver;
+        emit ReferralUpdated(code, receiver, commission, discount);
     }
 
     modifier onlyAdmin() {

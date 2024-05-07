@@ -5,6 +5,8 @@ node_modules
 # Hardhat files
 /cache
 /artifacts
+/cache-zk
+/artifacts-zk
 
 # TypeChain files
 /typechain
@@ -13,3 +15,5 @@ node_modules
 # solidity-coverage files
 /coverage
 /coverage.json
+
+era_test_node.log

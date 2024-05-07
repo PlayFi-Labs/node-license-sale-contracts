@@ -47,12 +47,12 @@ interface IPlayFiLicenseSale
     }
 
     event TeamLicensesClaimed(address indexed account, uint256 amount);
-    event FriendsFamilyLicensesClaimed(address indexed account, uint256 amount);
-    event EarlyAccessLicensesClaimed(address indexed account, uint256 amount);
-    event PartnerLicensesClaimed(address indexed account, uint256 amount);
-    event CommissionPaid(address indexed receiver, uint256 amount);
-    event PublicLicensesClaimed(address indexed account, uint256 amount, uint256 indexed tier, uint256 paid);
-    event referralUpdated(string code, address indexed receiver, uint256 commission, uint256 discount);
+    event FriendsFamilyLicensesClaimed(address indexed account, uint256 paid, uint256 amount);
+    event EarlyAccessLicensesClaimed(address indexed account, uint256 paid, uint256 amount);
+    event PartnerLicensesClaimed(address indexed account, uint256 paid, uint256 amount);
+    event CommissionPaid(string code, address indexed receiver, uint256 amount);
+    event PublicLicensesClaimed(address indexed account, uint256 amount, uint256 indexed tier, uint256 paid, string referral);
+    event ReferralUpdated(string code, address indexed receiver, uint256 commission, uint256 discount);
     event TeamMerkleRootSet(bytes32 merkleRoot);
     event FriendsFamilyMerkleRootSet(bytes32 merkleRoot);
     event EarlyAccessMerkleRootSet(bytes32 merkleRoot);
@@ -64,6 +64,7 @@ interface IPlayFiLicenseSale
     event PublicSaleStatusSet(bool status);
     event ProceedsWithdrawn(address indexed receiver, uint256 amount);
     event TierSet(uint256 indexed tierId, uint256 price, uint256 individualCap, uint256 totalClaimed, uint256 totalCap);
+    event ContractInitialized();
 
     error InvalidAddress(address account);
     error TeamSaleNotActive();
@@ -80,6 +81,8 @@ interface IPlayFiLicenseSale
     error WithdrawalFailed();
     error InvalidTierInputs();
     error AccessDenied();
+    error InvalidDiscount();
+    error InvalidCommission();
 
     function claimLicenseTeam(uint256 amount, bytes calldata data, bytes32[] calldata merkleProof) external;
 
