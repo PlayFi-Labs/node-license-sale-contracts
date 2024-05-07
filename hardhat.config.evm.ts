@@ -50,26 +50,22 @@ const config: HardhatUserConfig = {
     arbitrumSepolia: {
       url: "https://sepolia-rollup.arbitrum.io/rpc",
       accounts: process.env.ARBI_SEPOLIA_PRIVATE_KEY !== undefined ? [process.env.ARBI_SEPOLIA_PRIVATE_KEY] : [],
-      gas: 210000000,
-      gasPrice: 800000000,
     },
     arbitrumOne: {
       url: "https://arb1.arbitrum.io/rpc",
       accounts: process.env.MAINNET_PRIVATE_KEY !== undefined ? [process.env.MAINNET_PRIVATE_KEY] : [],
-      gas: 210000000,
-      gasPrice: 8000000000,
     },
     sepolia: {
       url: "https://sepolia.infura.io/v3/" + (process.env.INFURA_KEY !== undefined ? process.env.INFURA_KEY : ""),
       accounts: process.env.SEPOLIA_PRIVATE_KEY !== undefined ? [process.env.SEPOLIA_PRIVATE_KEY] : [],
-      gas: 210000000,
-      gasPrice: 800000000,
+    },
+    polygonAmoy: {
+      url: "https://polygon-amoy.g.alchemy.com/v2/" + (process.env.AMOY_ALCHEMY_KEY !== undefined ? process.env.AMOY_ALCHEMY_KEY : ""),
+      accounts: process.env.AMOY_PRIVATE_KEY !== undefined ? [process.env.AMOY_PRIVATE_KEY] : [],
     },
     ethereum: {
       url: "https://mainnet.infura.io/v3/" + (process.env.INFURA_KEY !== undefined ? process.env.INFURA_KEY : ""),
       accounts: process.env.MAINNET_PRIVATE_KEY !== undefined ? [process.env.MAINNET_PRIVATE_KEY] : [],
-      gas: 210000000,
-      gasPrice: 800000000,
     },
   },
   gasReporter: {
@@ -82,6 +78,7 @@ const config: HardhatUserConfig = {
       sepolia: process.env.ETHERSCAN_API_KEY !== undefined ? process.env.ETHERSCAN_API_KEY : "",
       arbitrumOne: process.env.MAINNET_ARBISCAN_API_KEY !== undefined ? process.env.MAINNET_ARBISCAN_API_KEY : "",
       arbitrumSepolia: process.env.ARBISCAN_API_KEY !== undefined ? process.env.ARBISCAN_API_KEY : "",
+      polygonAmoy: process.env.POLYGONSCAN_API_KEY !== undefined ? process.env.POLYGONSCAN_API_KEY : "",
     },
     customChains: [
       {
@@ -90,6 +87,14 @@ const config: HardhatUserConfig = {
         urls: {
           apiURL: "https://api-sepolia.arbiscan.io/api",
           browserURL: "https://sepolia.arbiscan.io/",
+        },
+      },
+      {
+        network: "polygonAmoy",
+        chainId: 80002,
+        urls: {
+          apiURL: "https://api-amoy.polygonscan.com/api",
+          browserURL: "https://amoy.polygonscan.com/",
         },
       }
     ],
@@ -102,27 +107,32 @@ const config: HardhatUserConfig = {
     deployerMultisig: {
       default: 1,
       42161: 1, //TODO: set correct address
-      421614: "0x571E443ccd1A35fEb3AfCD9F4a72f589Ef7eA785"
+      421614: "0x571E443ccd1A35fEb3AfCD9F4a72f589Ef7eA785",
+      80002: "0x571E443ccd1A35fEb3AfCD9F4a72f589Ef7eA785"
     },
     admin: {
       default: 2,
       42161: 2, //TODO: set correct address
-      421614: "0xf558c6EECcf47ce88E644Ce48DD6ca9176e2C23b"
+      421614: "0xf558c6EECcf47ce88E644Ce48DD6ca9176e2C23b",
+      80002: "0xf558c6EECcf47ce88E644Ce48DD6ca9176e2C23b"
     },
     guardian: {
       default: 3,
       42161: 3, //TODO: set correct address
-      421614: 0
+      421614: 0,
+      80002: 0
     },
     merkleManager: {
       default: 4,
       42161: 4, //TODO: set correct address
-      421614: 0
+      421614: 0,
+      80002: 0
     },
     referralManager: {
       default: 5,
       42161: 5, //TODO: set correct address
-      421614: 0
+      421614: 0,
+      80002: 0
     },
   },
 };

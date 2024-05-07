@@ -1,5 +1,7 @@
 import { ethers, getNamedAccounts } from "hardhat";
 import { Contract } from "ethers";
+import {Provider} from "zksync-ethers";
+import {User} from "./zksync";
 
 export async function setupUsers<U>(addresses: string[], contracts: unknown): Promise<U[]> {
   const users: U[] = [];
@@ -23,4 +25,10 @@ export async function setupUser<U>(address: string, unsafeContracts: unknown): P
 export async function setupDeployer<U>(unsafeContracts: unknown): Promise<U> {
   const { deployer } = await getNamedAccounts();
   return await setupUser(deployer, unsafeContracts);
+}
+
+
+export async function impersonate(user: User, provider: Provider): Promise<void> {
+  await provider.send("hardhat_impersonateAccount",[user.address]);
+  await ethers.getSigner(user.address);
 }

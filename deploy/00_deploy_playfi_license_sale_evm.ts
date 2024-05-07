@@ -32,5 +32,5 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     return true;
 };
 export default func;
-func.id = "DeployPlayFiLicenseSale";
-func.tags = ["DeployPlayFiLicenseSale"];
+func.id = "DeployPlayFiLicenseSaleEVM";
+func.tags = ["DeployPlayFiLicenseSaleEVM"];

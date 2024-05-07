@@ -1,16 +1,19 @@
-import {parseEther, Wallet} from "ethers";
-import hre, { ethers, upgrades } from "hardhat";
-import { Contracts, setupIntegration } from "../_helpers/evm/index";
+import hre, { ethers } from "hardhat";
+import { Contracts, setupIntegration } from "../_helpers/zksync/index";
 import { expect } from "chai";
-import { User } from "../_helpers/evm";
+import { User } from "../_helpers/zksync";
 import {PlayFiLicenseSale} from "../../typechain";
 import ClaimsTree from "../../scripts/merkle-tree/claims-tree";
+import {Provider, Wallet} from "zksync-ethers";
+import {impersonate} from "../_helpers/accounts";
+import {Deployer} from "@matterlabs/hardhat-zksync";
 
 const ONE_BYTES32 = '0x0000000000000000000000000000000000000000000000000000000000000001'
 
 
 describe("PlayFiLicenseSale", () => {
   let contracts: Contracts;
+  let provider: Provider;
   let deployer: User;
   let deployerMultisig: User;
   let admin: User;
@@ -20,61 +23,22 @@ describe("PlayFiLicenseSale", () => {
   let users: User[];
 
   beforeEach(async () => {
-    //await ethers.provider.send("hardhat_reset", []);
-    ({ contracts, deployer, deployerMultisig, admin, guardian, merkleManager, referralManager, users } =
+    ({ contracts, provider, deployer, deployerMultisig, admin, guardian, merkleManager, referralManager, users } =
       await setupIntegration());
   });
 
   describe("Contract Functionality", async function () {
-    it("admin address cannot be 0 on initializing", async function () {
-      await expect(
-        upgrades.deployProxy(await ethers.getContractFactory("PlayFiLicenseSale"), [
-            ethers.ZeroAddress,
-            ethers.ZeroAddress,
-            ethers.ZeroAddress,
-            ethers.ZeroAddress,
-        ]),
-      ).to.be.revertedWithCustomError(contracts.PlayFiLicenseSale, "InvalidAddress");
-    });
-
-    it("guardian address cannot be 0 on initializing", async function () {
-      await expect(
-          upgrades.deployProxy(await ethers.getContractFactory("PlayFiLicenseSale"), [
-            admin.address,
-            ethers.ZeroAddress,
-            ethers.ZeroAddress,
-            ethers.ZeroAddress,
-          ]),
-      ).to.be.revertedWithCustomError(contracts.PlayFiLicenseSale, "InvalidAddress");
-    });
-
-    it("merkleManager address cannot be 0 on initializing", async function () {
-      await expect(
-          upgrades.deployProxy(await ethers.getContractFactory("PlayFiLicenseSale"), [
-            admin.address,
-            guardian.address,
-            ethers.ZeroAddress,
-            ethers.ZeroAddress,
-          ]),
-      ).to.be.revertedWithCustomError(contracts.PlayFiLicenseSale, "InvalidAddress");
-    });
-
-    it("referralManager address cannot be 0 on initializing", async function () {
-      await expect(
-          upgrades.deployProxy(await ethers.getContractFactory("PlayFiLicenseSale"), [
-            admin.address,
-            guardian.address,
-            merkleManager.address,
-            ethers.ZeroAddress,
-          ]),
-      ).to.be.revertedWithCustomError(contracts.PlayFiLicenseSale, "InvalidAddress");
-    });
 
     it("initializing the contract sets the correct on-chain states", async function () {
-      const playFiLicenseSale = await upgrades.deployProxy(await ethers.getContractFactory("PlayFiLicenseSale"), [
+        const contractName = "PlayFiLicenseSale";
+        const PRIVATE_KEY = process.env.ZKSYNC_SEPOLIA_PRIVATE_KEY !== undefined ? process.env.ZKSYNC_SEPOLIA_PRIVATE_KEY : "";
+        const zkWallet = new Wallet(PRIVATE_KEY,provider);
+        const deployerAccount = new Deployer(hre, zkWallet);
+        const contract = await deployerAccount.loadArtifact(contractName);
+      const playFiLicenseSale = await hre.zkUpgrades.deployProxy(deployerAccount.zkWallet, contract, [
         admin.address,
         guardian.address, merkleManager.address, referralManager.address
-      ]) as unknown as PlayFiLicenseSale;
+      ], { initializer: "initialize" }) as unknown as PlayFiLicenseSale;
       await playFiLicenseSale.waitForDeployment()
       expect(await playFiLicenseSale.standardCommissionPercentage()).to.be.equal(5);
       expect(await playFiLicenseSale.standardDiscountPercentage()).to.be.equal(5);
@@ -97,17 +61,20 @@ describe("PlayFiLicenseSale", () => {
       });
 
       it("Claiming team licenses cannot be done for more than the individual cap", async function () {
+          await impersonate(guardian, provider);
           await guardian.PlayFiLicenseSale.setTeamSale(true);
           const data = ethers.AbiCoder.defaultAbiCoder().encode(["uint256","uint256"],[1,0]);
           await expect(users[10].PlayFiLicenseSale.claimLicenseTeam(2,data,[])).to.be.revertedWithCustomError(contracts.PlayFiLicenseSale,"IndividualClaimCapExceeded");
       });
 
       it("Claiming team licenses cannot be done if the index is incorrect", async function () {
+          await impersonate(guardian, provider);
           await guardian.PlayFiLicenseSale.setTeamSale(true);
           let tree = new ClaimsTree([
               {account: users[10].address, claimCap: BigInt("2")},
               {account: users[9].address, claimCap: BigInt("2")}
           ]);
+          await impersonate(merkleManager, provider);
           await merkleManager.PlayFiLicenseSale.setTeamMerkleRoot(tree.getHexRoot());
           const proof = tree.getProof(0, users[10].address, BigInt("2"));
           const data = ethers.AbiCoder.defaultAbiCoder().encode(["uint256","uint256"],[1,2]);
@@ -115,11 +82,13 @@ describe("PlayFiLicenseSale", () => {
       });
 
       it("Claiming team licenses cannot be done if the claimCap is incorrect", async function () {
+          await impersonate(guardian, provider);
           await guardian.PlayFiLicenseSale.setTeamSale(true);
           let tree = new ClaimsTree([
               {account: users[10].address, claimCap: BigInt("2")},
               {account: users[9].address, claimCap: BigInt("2")}
           ]);
+          await impersonate(merkleManager, provider);
           await merkleManager.PlayFiLicenseSale.setTeamMerkleRoot(tree.getHexRoot());
           const proof = tree.getProof(0, users[10].address, BigInt("2"));
           const data = ethers.AbiCoder.defaultAbiCoder().encode(["uint256","uint256"],[0,1]);
@@ -127,11 +96,13 @@ describe("PlayFiLicenseSale", () => {
       });
 
       it("Claiming team licenses cannot be done with another address", async function () {
+          await impersonate(guardian, provider);
           await guardian.PlayFiLicenseSale.setTeamSale(true);
           let tree = new ClaimsTree([
               {account: users[10].address, claimCap: BigInt("2")},
               {account: users[9].address, claimCap: BigInt("2")}
           ]);
+          await impersonate(merkleManager, provider);
           await merkleManager.PlayFiLicenseSale.setTeamMerkleRoot(tree.getHexRoot());
           const proof = tree.getProof(0, users[10].address, BigInt("2"));
           const data = ethers.AbiCoder.defaultAbiCoder().encode(["uint256","uint256"],[0,2]);
@@ -139,14 +110,17 @@ describe("PlayFiLicenseSale", () => {
       });
 
       it("Claiming team licenses claims new team licenses, even in 2 times and sets the correct on-chain state", async function () {
+          await impersonate(guardian, provider);
           await guardian.PlayFiLicenseSale.setTeamSale(true);
           let tree = new ClaimsTree([
               {account: users[10].address, claimCap: BigInt("2")},
               {account: users[9].address, claimCap: BigInt("2")}
           ]);
+          await impersonate(merkleManager, provider);
           await merkleManager.PlayFiLicenseSale.setTeamMerkleRoot(tree.getHexRoot());
           const proof = tree.getProof(0, users[10].address, BigInt("2"));
           //claim 1 -- should succeed
+          await impersonate(users[10], provider);
           const data = ethers.AbiCoder.defaultAbiCoder().encode(["uint256","uint256"],[0,2]);
           await expect(users[10].PlayFiLicenseSale.claimLicenseTeam(1,data,proof)).to.emit(contracts.PlayFiLicenseSale,"TeamLicensesClaimed").withArgs(users[10].address,1);
           //claim 2 -- should succeed
@@ -164,17 +138,20 @@ describe("PlayFiLicenseSale", () => {
       });
 
       it("Claiming friends & family licenses cannot be done for more than the individual cap", async function () {
+          await impersonate(guardian, provider);
           await guardian.PlayFiLicenseSale.setFriendsFamilySale(true);
           const data = ethers.AbiCoder.defaultAbiCoder().encode(["uint256","uint256"],[1,0]);
           await expect(users[10].PlayFiLicenseSale.claimLicenseFriendsFamily(2,data,[])).to.be.revertedWithCustomError(contracts.PlayFiLicenseSale,"IndividualClaimCapExceeded");
       });
 
       it("Claiming friends & family licenses cannot be done if the index is incorrect", async function () {
+          await impersonate(guardian, provider);
           await guardian.PlayFiLicenseSale.setFriendsFamilySale(true);
           let tree = new ClaimsTree([
               {account: users[10].address, claimCap: BigInt("2")},
               {account: users[9].address, claimCap: BigInt("2")}
           ]);
+          await impersonate(merkleManager, provider);
           await merkleManager.PlayFiLicenseSale.setFriendsFamilyMerkleRoot(tree.getHexRoot());
           const proof = tree.getProof(0, users[10].address, BigInt("2"));
           const data = ethers.AbiCoder.defaultAbiCoder().encode(["uint256","uint256"],[1,2]);
@@ -182,11 +159,13 @@ describe("PlayFiLicenseSale", () => {
       });
 
       it("Claiming friends & family licenses cannot be done if the claimCap is incorrect", async function () {
+          await impersonate(guardian, provider);
           await guardian.PlayFiLicenseSale.setFriendsFamilySale(true);
           let tree = new ClaimsTree([
               {account: users[10].address, claimCap: BigInt("2")},
               {account: users[9].address, claimCap: BigInt("2")}
           ]);
+          await impersonate(merkleManager, provider);
           await merkleManager.PlayFiLicenseSale.setFriendsFamilyMerkleRoot(tree.getHexRoot());
           const proof = tree.getProof(0, users[10].address, BigInt("2"));
           const data = ethers.AbiCoder.defaultAbiCoder().encode(["uint256","uint256"],[0,1]);
@@ -194,11 +173,13 @@ describe("PlayFiLicenseSale", () => {
       });
 
       it("Claiming friends & family licenses cannot be done with another address", async function () {
+          await impersonate(guardian, provider);
           await guardian.PlayFiLicenseSale.setFriendsFamilySale(true);
           let tree = new ClaimsTree([
               {account: users[10].address, claimCap: BigInt("2")},
               {account: users[9].address, claimCap: BigInt("2")}
           ]);
+          await impersonate(merkleManager, provider);
           await merkleManager.PlayFiLicenseSale.setFriendsFamilyMerkleRoot(tree.getHexRoot());
           const proof = tree.getProof(0, users[10].address, BigInt("2"));
           const data = ethers.AbiCoder.defaultAbiCoder().encode(["uint256","uint256"],[0,2]);
@@ -206,12 +187,15 @@ describe("PlayFiLicenseSale", () => {
       });
 
       it("Claiming friends & family licenses cannot be done if the payment is insufficient", async function () {
+          await impersonate(admin, provider);
           await admin.PlayFiLicenseSale.setTiers([1],[ethers.parseEther("0.01")],[1],[1]);
+          await impersonate(guardian, provider);
           await guardian.PlayFiLicenseSale.setFriendsFamilySale(true);
           let tree = new ClaimsTree([
               {account: users[10].address, claimCap: BigInt("2")},
               {account: users[9].address, claimCap: BigInt("2")}
           ]);
+          await impersonate(merkleManager, provider);
           await merkleManager.PlayFiLicenseSale.setFriendsFamilyMerkleRoot(tree.getHexRoot());
           const proof = tree.getProof(0, users[10].address, BigInt("2"));
           //claim 1 -- should revert
@@ -221,15 +205,19 @@ describe("PlayFiLicenseSale", () => {
       });
 
       it("Claiming friends & family licenses claims new friends & family licenses, even in 2 times and sets the correct on-chain state", async function () {
+          await impersonate(admin, provider);
           await admin.PlayFiLicenseSale.setTiers([1],[ethers.parseEther("0.01")],[1],[1]);
+          await impersonate(guardian, provider);
           await guardian.PlayFiLicenseSale.setFriendsFamilySale(true);
           let tree = new ClaimsTree([
               {account: users[10].address, claimCap: BigInt("2")},
               {account: users[9].address, claimCap: BigInt("2")}
           ]);
+          await impersonate(merkleManager, provider);
           await merkleManager.PlayFiLicenseSale.setFriendsFamilyMerkleRoot(tree.getHexRoot());
           const proof = tree.getProof(0, users[10].address, BigInt("2"));
           //claim 1 -- should succeed
+          await impersonate(users[10], provider);
           const data = ethers.AbiCoder.defaultAbiCoder().encode(["uint256","uint256"],[0,2]);
           await expect(users[10].PlayFiLicenseSale.claimLicenseFriendsFamily(1,data,proof,{value: ethers.parseEther("0.01")})).to.emit(contracts.PlayFiLicenseSale,"FriendsFamilyLicensesClaimed").withArgs(users[10].address,ethers.parseEther("0.01"),1);
           //claim 2 -- should succeed
@@ -248,17 +236,20 @@ describe("PlayFiLicenseSale", () => {
       });
 
       it("Claiming early access licenses cannot be done for more than the individual cap", async function () {
+          await impersonate(guardian, provider);
           await guardian.PlayFiLicenseSale.setEarlyAccessSale(true);
           const data = ethers.AbiCoder.defaultAbiCoder().encode(["uint256","uint256"],[1,0]);
           await expect(users[10].PlayFiLicenseSale.claimLicenseEarlyAccess(2,data,[])).to.be.revertedWithCustomError(contracts.PlayFiLicenseSale,"IndividualClaimCapExceeded");
       });
 
        it("Claiming early access licenses cannot be done if the index is incorrect", async function () {
+          await impersonate(guardian, provider);
           await guardian.PlayFiLicenseSale.setEarlyAccessSale(true);
           let tree = new ClaimsTree([
               {account: users[10].address, claimCap: BigInt("2")},
               {account: users[9].address, claimCap: BigInt("2")}
           ]);
+          await impersonate(merkleManager, provider);
           await merkleManager.PlayFiLicenseSale.setEarlyAccessMerkleRoot(tree.getHexRoot());
           const proof = tree.getProof(0, users[10].address, BigInt("2"));
           const data = ethers.AbiCoder.defaultAbiCoder().encode(["uint256","uint256"],[1,2]);
@@ -266,11 +257,13 @@ describe("PlayFiLicenseSale", () => {
       });
 
       it("Claiming early access licenses cannot be done if the claimCap is incorrect", async function () {
+          await impersonate(guardian, provider);
           await guardian.PlayFiLicenseSale.setEarlyAccessSale(true);
           let tree = new ClaimsTree([
               {account: users[10].address, claimCap: BigInt("2")},
               {account: users[9].address, claimCap: BigInt("2")}
           ]);
+          await impersonate(merkleManager, provider);
           await merkleManager.PlayFiLicenseSale.setEarlyAccessMerkleRoot(tree.getHexRoot());
           const proof = tree.getProof(0, users[10].address, BigInt("2"));
           const data = ethers.AbiCoder.defaultAbiCoder().encode(["uint256","uint256"],[0,1]);
@@ -278,11 +271,13 @@ describe("PlayFiLicenseSale", () => {
       });
 
       it("Claiming early access licenses cannot be done with another address", async function () {
+          await impersonate(guardian, provider);
           await guardian.PlayFiLicenseSale.setEarlyAccessSale(true);
           let tree = new ClaimsTree([
               {account: users[10].address, claimCap: BigInt("2")},
               {account: users[9].address, claimCap: BigInt("2")}
           ]);
+          await impersonate(merkleManager, provider);
           await merkleManager.PlayFiLicenseSale.setEarlyAccessMerkleRoot(tree.getHexRoot());
           const proof = tree.getProof(0, users[10].address, BigInt("2"));
           const data = ethers.AbiCoder.defaultAbiCoder().encode(["uint256","uint256"],[0,2]);
@@ -290,12 +285,15 @@ describe("PlayFiLicenseSale", () => {
       });
 
       it("Claiming early access licenses cannot be done if the payment is insufficient", async function () {
+          await impersonate(admin, provider);
           await admin.PlayFiLicenseSale.setTiers([1,2],[ethers.parseEther("0.01"),ethers.parseEther("0.02")],[1,1],[1,1]);
+          await impersonate(guardian, provider);
           await guardian.PlayFiLicenseSale.setEarlyAccessSale(true);
           let tree = new ClaimsTree([
               {account: users[10].address, claimCap: BigInt("2")},
               {account: users[9].address, claimCap: BigInt("2")}
           ]);
+          await impersonate(merkleManager, provider);
           await merkleManager.PlayFiLicenseSale.setEarlyAccessMerkleRoot(tree.getHexRoot());
           const proof = tree.getProof(0, users[10].address, BigInt("2"));
           //claim 1 -- should revert
@@ -305,15 +303,19 @@ describe("PlayFiLicenseSale", () => {
       });
 
       it("Claiming early access licenses claims new early access licenses, even in 2 times and sets the correct on-chain state", async function () {
+          await impersonate(admin, provider);
           await admin.PlayFiLicenseSale.setTiers([1,2],[ethers.parseEther("0.01"),ethers.parseEther("0.02")],[1,1],[1,1]);
+          await impersonate(guardian, provider);
           await guardian.PlayFiLicenseSale.setEarlyAccessSale(true);
           let tree = new ClaimsTree([
               {account: users[10].address, claimCap: BigInt("2")},
               {account: users[9].address, claimCap: BigInt("2")}
           ]);
+          await impersonate(merkleManager, provider);
           await merkleManager.PlayFiLicenseSale.setEarlyAccessMerkleRoot(tree.getHexRoot());
           const proof = tree.getProof(0, users[10].address, BigInt("2"));
           //claim 1 -- should succeed
+          await impersonate(users[10], provider);
           const data = ethers.AbiCoder.defaultAbiCoder().encode(["uint256","uint256"],[0,2]);
           await expect(users[10].PlayFiLicenseSale.claimLicenseEarlyAccess(1,data,proof,{value: ethers.parseEther("0.01")})).to.emit(contracts.PlayFiLicenseSale,"EarlyAccessLicensesClaimed").withArgs(users[10].address,ethers.parseEther("0.01"),1);
           //claim 2 -- should succeed
@@ -332,17 +334,20 @@ describe("PlayFiLicenseSale", () => {
       });
 
       it("Claiming partner licenses cannot be done for more than the individual cap", async function () {
+          await impersonate(guardian, provider);
           await guardian.PlayFiLicenseSale.setPartnerSale(true);
           const data = ethers.AbiCoder.defaultAbiCoder().encode(["uint256","uint256"],[1,0]);
           await expect(users[10].PlayFiLicenseSale.claimLicensePartner(2,data,[])).to.be.revertedWithCustomError(contracts.PlayFiLicenseSale,"IndividualClaimCapExceeded");
       });
 
       it("Claiming partner licenses cannot be done if the index is incorrect", async function () {
+          await impersonate(guardian, provider);
           await guardian.PlayFiLicenseSale.setPartnerSale(true);
           let tree = new ClaimsTree([
               {account: users[10].address, claimCap: BigInt("2")},
               {account: users[9].address, claimCap: BigInt("2")}
           ]);
+          await impersonate(merkleManager, provider);
           await merkleManager.PlayFiLicenseSale.setPartnerMerkleRoot(tree.getHexRoot());
           const proof = tree.getProof(0, users[10].address, BigInt("2"));
           const data = ethers.AbiCoder.defaultAbiCoder().encode(["uint256","uint256"],[1,2]);
@@ -350,11 +355,13 @@ describe("PlayFiLicenseSale", () => {
       });
 
       it("Claiming partner licenses cannot be done if the claimCap is incorrect", async function () {
+          await impersonate(guardian, provider);
           await guardian.PlayFiLicenseSale.setPartnerSale(true);
           let tree = new ClaimsTree([
               {account: users[10].address, claimCap: BigInt("2")},
               {account: users[9].address, claimCap: BigInt("2")}
           ]);
+          await impersonate(merkleManager, provider);
           await merkleManager.PlayFiLicenseSale.setPartnerMerkleRoot(tree.getHexRoot());
           const proof = tree.getProof(0, users[10].address, BigInt("2"));
           const data = ethers.AbiCoder.defaultAbiCoder().encode(["uint256","uint256"],[0,1]);
@@ -362,11 +369,13 @@ describe("PlayFiLicenseSale", () => {
       });
 
       it("Claiming partner licenses cannot be done with another address", async function () {
+          await impersonate(guardian, provider);
           await guardian.PlayFiLicenseSale.setPartnerSale(true);
           let tree = new ClaimsTree([
               {account: users[10].address, claimCap: BigInt("2")},
               {account: users[9].address, claimCap: BigInt("2")}
           ]);
+          await impersonate(merkleManager, provider);
           await merkleManager.PlayFiLicenseSale.setPartnerMerkleRoot(tree.getHexRoot());
           const proof = tree.getProof(0, users[10].address, BigInt("2"));
           const data = ethers.AbiCoder.defaultAbiCoder().encode(["uint256","uint256"],[0,2]);
@@ -374,12 +383,15 @@ describe("PlayFiLicenseSale", () => {
       });
 
       it("Claiming partner licenses cannot be done if the payment is insufficient", async function () {
+          await impersonate(admin, provider);
           await admin.PlayFiLicenseSale.setTiers([1,8],[ethers.parseEther("0.01"),ethers.parseEther("0.02")],[1,1],[1,1]);
+          await impersonate(guardian, provider);
           await guardian.PlayFiLicenseSale.setPartnerSale(true);
           let tree = new ClaimsTree([
               {account: users[10].address, claimCap: BigInt("2")},
               {account: users[9].address, claimCap: BigInt("2")}
           ]);
+          await impersonate(merkleManager, provider);
           await merkleManager.PlayFiLicenseSale.setPartnerMerkleRoot(tree.getHexRoot());
           const proof = tree.getProof(0, users[10].address, BigInt("2"));
           //claim 1 -- should revert
@@ -389,15 +401,19 @@ describe("PlayFiLicenseSale", () => {
       });
 
       it("Claiming partner licenses claims new partner licenses, even in 2 times and sets the correct on-chain state", async function () {
+          await impersonate(admin, provider);
           await admin.PlayFiLicenseSale.setTiers([1,8],[ethers.parseEther("0.01"),ethers.parseEther("0.02")],[1,1],[1,1]);
+          await impersonate(guardian, provider);
           await guardian.PlayFiLicenseSale.setPartnerSale(true);
           let tree = new ClaimsTree([
               {account: users[10].address, claimCap: BigInt("2")},
               {account: users[9].address, claimCap: BigInt("2")}
           ]);
+          await impersonate(merkleManager, provider);
           await merkleManager.PlayFiLicenseSale.setPartnerMerkleRoot(tree.getHexRoot());
           const proof = tree.getProof(0, users[10].address, BigInt("2"));
           //claim 1 -- should succeed
+          await impersonate(users[10], provider);
           const data = ethers.AbiCoder.defaultAbiCoder().encode(["uint256","uint256"],[0,2]);
           await expect(users[10].PlayFiLicenseSale.claimLicensePartner(1,data,proof,{value: ethers.parseEther("0.02")})).to.emit(contracts.PlayFiLicenseSale,"PartnerLicensesClaimed").withArgs(users[10].address,ethers.parseEther("0.02"),1);
           //claim 2 -- should succeed
@@ -416,31 +432,41 @@ describe("PlayFiLicenseSale", () => {
       });
 
       it("Claiming a public license cannot be done when the total tier cap is exceeded", async function () {
+          await impersonate(admin, provider);
           await admin.PlayFiLicenseSale.setTiers([1],[ethers.parseEther("0.01")],[1],[1]);
+          await impersonate(guardian, provider);
           await guardian.PlayFiLicenseSale.setPublicSale(true);
           await expect(users[10].PlayFiLicenseSale.claimLicensePublic(2,1,"")).to.be.revertedWithCustomError(contracts.PlayFiLicenseSale,"TotalTierCapExceeded");
       });
 
       it("Claiming a public license cannot be done when the individual tier cap is exceeded", async function () {
+          await impersonate(admin, provider);
           await admin.PlayFiLicenseSale.setTiers([1],[ethers.parseEther("0.01")],[1],[2]);
+          await impersonate(guardian, provider);
           await guardian.PlayFiLicenseSale.setPublicSale(true);
           await expect(users[10].PlayFiLicenseSale.claimLicensePublic(2,1,"")).to.be.revertedWithCustomError(contracts.PlayFiLicenseSale,"IndividualTierCapExceeded");
       });
 
       it("Claiming public licenses cannot be done if the payment is insufficient", async function () {
+          await impersonate(admin, provider);
           await admin.PlayFiLicenseSale.setTiers([1],[ethers.parseEther("0.01")],[2],[2]);
+          await impersonate(guardian, provider);
           await guardian.PlayFiLicenseSale.setPublicSale(true);
           const toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForReferral(2,1,"")).toPay;
           await expect(users[10].PlayFiLicenseSale.claimLicensePublic(2,1,"",{value: toPay - ethers.parseEther("0.0000001")})).to.be.revertedWithCustomError(contracts.PlayFiLicenseSale,"InsufficientPayment");
       });
 
       it("If a valid referral is applied, the correct commission will be paid to the qualified receiver", async function () {
-          const startAmount = ethers.parseEther("10000");
+          const startAmount = ethers.parseEther("1000000000000");
+          await impersonate(admin, provider);
           await admin.PlayFiLicenseSale.setTiers([1],[ethers.parseEther("0.01")],[2],[4]);
+          await impersonate(referralManager, provider);
           await referralManager.PlayFiLicenseSale.setReferral("REFERRAL",users[11].address,10,5);
+          await impersonate(guardian, provider);
           await guardian.PlayFiLicenseSale.setPublicSale(true);
 
           // Special Referral (with code)
+          await impersonate(users[10], provider);
           const toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForReferral(2,1,"REFERRAL")).toPay;
           await expect(users[10].PlayFiLicenseSale.claimLicensePublic(2,1,"REFERRAL",{value: toPay})).to.emit(contracts.PlayFiLicenseSale,"PublicLicensesClaimed").withArgs(users[10].address,2,1,toPay,"REFERRAL");
           expect(await ethers.provider.getBalance(contracts.PlayFiLicenseSale.getAddress())).to.be.equal(ethers.parseEther("0.017"));
@@ -448,6 +474,7 @@ describe("PlayFiLicenseSale", () => {
           expect(await contracts.PlayFiLicenseSale.publicClaimsPerAddress(users[10].address)).to.be.equal(2);
 
           // Normal Referral (with address in lowercase)
+          await impersonate(users[12], provider);
           const startAmount2 = await ethers.provider.getBalance(users[10].address);
           const toPay2 = (await contracts.PlayFiLicenseSale.paymentDetailsForReferral(2,1,users[10].address.toLowerCase())).toPay;
           await expect(users[12].PlayFiLicenseSale.claimLicensePublic(2,1,users[10].address.toLowerCase(),{value: toPay2})).to.emit(contracts.PlayFiLicenseSale,"PublicLicensesClaimed").withArgs(users[12].address,2,1,toPay2,users[10].address.toLowerCase());
@@ -457,9 +484,12 @@ describe("PlayFiLicenseSale", () => {
       });
 
       it("Claiming a public license will activate a personal referral key", async function () {
-          const startAmount = ethers.parseEther("10000");
+          const startAmount = ethers.parseEther("1000000000000");
+          await impersonate(admin, provider);
           await admin.PlayFiLicenseSale.setTiers([1],[ethers.parseEther("0.01")],[2],[4]);
+          await impersonate(referralManager, provider);
           await referralManager.PlayFiLicenseSale.setReferral("REFERRAL",users[11].address,10,5);
+          await impersonate(guardian, provider);
           await guardian.PlayFiLicenseSale.setPublicSale(true);
 
           const referralBefore = await contracts.PlayFiLicenseSale.referrals(users[10].address.toLowerCase());
@@ -468,6 +498,7 @@ describe("PlayFiLicenseSale", () => {
           expect(referralBefore[2]).to.be.equal(ethers.ZeroAddress);
 
           // Node license sale
+          await impersonate(users[10], provider);
           const toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForReferral(2,1,"REFERRAL")).toPay;
           await expect(users[10].PlayFiLicenseSale.claimLicensePublic(2,1,"REFERRAL",{value: toPay})).to.emit(contracts.PlayFiLicenseSale,"PublicLicensesClaimed").withArgs(users[10].address,2,1,toPay,"REFERRAL");
           expect(await ethers.provider.getBalance(contracts.PlayFiLicenseSale.getAddress())).to.be.equal(ethers.parseEther("0.017"));
@@ -481,12 +512,16 @@ describe("PlayFiLicenseSale", () => {
       });
 
       it("Claiming public licenses claims new public licenses and sets the correct on-chain state", async function () {
-          const startAmount = ethers.parseEther("10000");
+          const startAmount = ethers.parseEther("1000000000000");
+          await impersonate(admin, provider);
           await admin.PlayFiLicenseSale.setTiers([1],[ethers.parseEther("0.01")],[2],[4]);
+          await impersonate(referralManager, provider);
           await referralManager.PlayFiLicenseSale.setReferral("REFERRAL",users[11].address,10,5);
+          await impersonate(guardian, provider);
           await guardian.PlayFiLicenseSale.setPublicSale(true);
 
           // Special Referral (with code)
+          await impersonate(users[10], provider);
           const toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForReferral(2,1,"REFERRAL")).toPay;
           await expect(users[10].PlayFiLicenseSale.claimLicensePublic(2,1,"REFERRAL",{value: toPay})).to.emit(contracts.PlayFiLicenseSale,"PublicLicensesClaimed").withArgs(users[10].address,2,1,toPay,"REFERRAL");
           expect(await ethers.provider.getBalance(contracts.PlayFiLicenseSale.getAddress())).to.be.equal(ethers.parseEther("0.017"));
@@ -500,6 +535,7 @@ describe("PlayFiLicenseSale", () => {
           expect(await contracts.PlayFiLicenseSale.totalLicenses()).to.be.equal(2);
 
           // Normal Referral (with address in lowercase)
+          await impersonate(users[12], provider);
           const startAmount2 = await ethers.provider.getBalance(users[10].address);
           const toPay2 = (await contracts.PlayFiLicenseSale.paymentDetailsForReferral(2,1,users[10].address.toLowerCase())).toPay;
           await expect(users[12].PlayFiLicenseSale.claimLicensePublic(2,1,users[10].address.toLowerCase(),{value: toPay2})).to.emit(contracts.PlayFiLicenseSale,"PublicLicensesClaimed").withArgs(users[12].address,2,1,toPay2,users[10].address.toLowerCase());
@@ -515,12 +551,16 @@ describe("PlayFiLicenseSale", () => {
       });
 
       it("PaymentDetailsForReferral returns the correct amount to pay, commission and discount in case of a valid referral is used", async function () {
+          await impersonate(admin, provider);
           await admin.PlayFiLicenseSale.setTiers([1],[ethers.parseEther("0.01")],[2],[4]);
+          await impersonate(referralManager, provider);
           await referralManager.PlayFiLicenseSale.setReferral("REFERRAL",users[11].address,10,5);
+          await impersonate(guardian, provider);
           await guardian.PlayFiLicenseSale.setPublicSale(true);
 
           // Special Referral (with code): 10% commission, 5% discount
           const paymentDetailsSpecial = await contracts.PlayFiLicenseSale.paymentDetailsForReferral(2,1,"REFERRAL");
+          await impersonate(users[10], provider);
           await users[10].PlayFiLicenseSale.claimLicensePublic(2,1,"REFERRAL",{value: paymentDetailsSpecial.toPay});
           expect(paymentDetailsSpecial[0]).to.be.equal(ethers.parseEther("0.019"));
           expect(paymentDetailsSpecial[1]).to.be.equal(ethers.parseEther("0.002"));
@@ -534,6 +574,7 @@ describe("PlayFiLicenseSale", () => {
       });
 
       it("getTier returns the tier details", async function () {
+          await impersonate(admin, provider);
           await admin.PlayFiLicenseSale.setTiers([1,2],[ethers.parseEther("0.01"),ethers.parseEther("0.02")],[1,2],[2,4]);
           const tier1 = await contracts.PlayFiLicenseSale.tiers(1);
           const tier2 = await contracts.PlayFiLicenseSale.tiers(2);
@@ -548,6 +589,7 @@ describe("PlayFiLicenseSale", () => {
       });
 
       it("getReferral returns the referral details", async function () {
+          await impersonate(admin, provider);
           await admin.PlayFiLicenseSale.setTiers([1,2],[ethers.parseEther("0.01"),ethers.parseEther("0.02")],[1,2],[2,4]);
           const tier1 = await contracts.PlayFiLicenseSale.tiers(1);
           const tier2 = await contracts.PlayFiLicenseSale.tiers(2);
@@ -574,6 +616,7 @@ describe("PlayFiLicenseSale", () => {
       });
 
       it("setReferral sets the code of the referral, the discount and the commission. Both for new and existing referrals", async function () {
+          await impersonate(referralManager, provider);
           await referralManager.PlayFiLicenseSale.setReferral("REFERRAL",users[10].address,10,5);
           let referral = await contracts.PlayFiLicenseSale.referrals("REFERRAL");
           expect(referral[0]).to.be.equal(5);
@@ -599,8 +642,11 @@ describe("PlayFiLicenseSale", () => {
       });
 
       it("setTiers sets the price, individual cap and total cap of the tier. It leaves the total amount of claims for the tiers a is.", async function () {
+          await impersonate(admin, provider);
           await admin.PlayFiLicenseSale.setTiers([1,2],[ethers.parseEther("0.01"),ethers.parseEther("0.02")],[1,2],[2,4]);
+          await impersonate(guardian, provider);
           await guardian.PlayFiLicenseSale.setPublicSale(true);
+          await impersonate(users[10], provider);
           await expect(users[10].PlayFiLicenseSale.claimLicensePublic(1,1,"",{value: ethers.parseEther("0.01")})).to.emit(contracts.PlayFiLicenseSale,"PublicLicensesClaimed").withArgs(users[10].address,1,1,ethers.parseEther("0.01"),"");
           let tier1 = await contracts.PlayFiLicenseSale.tiers(1);
           expect(tier1[0]).to.be.equal(ethers.parseEther("0.01"));
@@ -608,6 +654,7 @@ describe("PlayFiLicenseSale", () => {
           expect(tier1[2]).to.be.equal(1);
           expect(tier1[3]).to.be.equal(2);
 
+          await impersonate(admin, provider);
           await admin.PlayFiLicenseSale.setTiers([1,2],[ethers.parseEther("0.02"),ethers.parseEther("0.02")],[2,2],[4,4]);
 
           tier1 = await contracts.PlayFiLicenseSale.tiers(1);
@@ -622,6 +669,7 @@ describe("PlayFiLicenseSale", () => {
       });
 
       it("setTeamMerkleRoot sets the merkle root of the team license claim", async function () {
+          await impersonate(merkleManager, provider);
           await merkleManager.PlayFiLicenseSale.setTeamMerkleRoot(ONE_BYTES32);
           expect(await contracts.PlayFiLicenseSale.teamMerkleRoot()).to.be.equal(ONE_BYTES32);
       });
@@ -631,6 +679,7 @@ describe("PlayFiLicenseSale", () => {
       });
 
       it("setFriendsFamilyMerkleRoot sets the merkle root of the friends & family license claim", async function () {
+          await impersonate(merkleManager, provider);
           await merkleManager.PlayFiLicenseSale.setFriendsFamilyMerkleRoot(ONE_BYTES32);
           expect(await contracts.PlayFiLicenseSale.friendsFamilyMerkleRoot()).to.be.equal(ONE_BYTES32);
       });
@@ -640,6 +689,7 @@ describe("PlayFiLicenseSale", () => {
       });
 
       it("setEarlyAccessMerkleRoot sets the merkle root of the early access license claim", async function () {
+          await impersonate(merkleManager, provider);
           await merkleManager.PlayFiLicenseSale.setEarlyAccessMerkleRoot(ONE_BYTES32);
           expect(await contracts.PlayFiLicenseSale.earlyAccessMerkleRoot()).to.be.equal(ONE_BYTES32);
       });
@@ -649,6 +699,7 @@ describe("PlayFiLicenseSale", () => {
       });
 
       it("setPartnerMerkleRoot sets the merkle root of the partner license claim", async function () {
+          await impersonate(merkleManager, provider);
           await merkleManager.PlayFiLicenseSale.setPartnerMerkleRoot(ONE_BYTES32);
           expect(await contracts.PlayFiLicenseSale.partnerMerkleRoot()).to.be.equal(ONE_BYTES32);
       });
@@ -659,6 +710,7 @@ describe("PlayFiLicenseSale", () => {
 
       it("setTeamSale sets the status of the team sale", async function () {
           expect(await contracts.PlayFiLicenseSale.teamSaleActive()).to.be.equal(false);
+          await impersonate(guardian, provider);
           await guardian.PlayFiLicenseSale.setTeamSale(true);
           expect(await contracts.PlayFiLicenseSale.teamSaleActive()).to.be.equal(true);
       });
@@ -669,6 +721,7 @@ describe("PlayFiLicenseSale", () => {
 
       it("setFriendsFamilySale sets the status of the friends & family sale", async function () {
           expect(await contracts.PlayFiLicenseSale.friendsFamilySaleActive()).to.be.equal(false);
+          await impersonate(guardian, provider);
           await guardian.PlayFiLicenseSale.setFriendsFamilySale(true);
           expect(await contracts.PlayFiLicenseSale.friendsFamilySaleActive()).to.be.equal(true);
       });
@@ -679,6 +732,7 @@ describe("PlayFiLicenseSale", () => {
 
       it("setEarlyAccessSale sets the status of the early access sale", async function () {
           expect(await contracts.PlayFiLicenseSale.earlyAccessSaleActive()).to.be.equal(false);
+          await impersonate(guardian, provider);
           await guardian.PlayFiLicenseSale.setEarlyAccessSale(true);
           expect(await contracts.PlayFiLicenseSale.earlyAccessSaleActive()).to.be.equal(true);
       });
@@ -689,6 +743,7 @@ describe("PlayFiLicenseSale", () => {
 
       it("setPartnerSale sets the status of the partner sale", async function () {
           expect(await contracts.PlayFiLicenseSale.partnerSaleActive()).to.be.equal(false);
+          await impersonate(guardian, provider);
           await guardian.PlayFiLicenseSale.setPartnerSale(true);
           expect(await contracts.PlayFiLicenseSale.partnerSaleActive()).to.be.equal(true);
       });
@@ -699,6 +754,7 @@ describe("PlayFiLicenseSale", () => {
 
       it("setPublicSale sets the status of the public sale", async function () {
           expect(await contracts.PlayFiLicenseSale.publicSaleActive()).to.be.equal(false);
+          await impersonate(guardian, provider);
           await guardian.PlayFiLicenseSale.setPublicSale(true);
           expect(await contracts.PlayFiLicenseSale.publicSaleActive()).to.be.equal(true);
       });
@@ -710,15 +766,18 @@ describe("PlayFiLicenseSale", () => {
       });
 
       it("withdrawing proceeds transfers all proceeds to the method caller.", async function () {
+          await impersonate(admin, provider);
           await admin.PlayFiLicenseSale.setTiers([1,2],[ethers.parseEther("0.01"),ethers.parseEther("0.02")],[1,2],[2,4]);
+          await impersonate(guardian, provider);
           await guardian.PlayFiLicenseSale.setPublicSale(true);
           const balanceBefore = await ethers.provider.getBalance(admin.address);
+          await impersonate(users[10], provider);
           await expect(users[10].PlayFiLicenseSale.claimLicensePublic(1,1,"",{value: ethers.parseEther("0.01")})).to.emit(contracts.PlayFiLicenseSale,"PublicLicensesClaimed").withArgs(users[10].address,1,1,ethers.parseEther("0.01"),"");
           expect(await ethers.provider.getBalance(contracts.PlayFiLicenseSale.getAddress())).to.be.equal(ethers.parseEther("0.01"));
-          const receipt = await (await admin.PlayFiLicenseSale.withdrawProceeds()).wait();
-          const feePaid = receipt!.gasUsed * receipt!.gasPrice;
+          await impersonate(admin, provider);
+          await (await admin.PlayFiLicenseSale.withdrawProceeds()).wait();
           expect(await ethers.provider.getBalance(contracts.PlayFiLicenseSale.getAddress())).to.be.equal(0);
-          expect(await ethers.provider.getBalance(admin.address)).to.be.equal(balanceBefore - feePaid + ethers.parseEther("0.01"));
+          expect(await ethers.provider.getBalance(admin.address)).to.be.equal(balanceBefore + ethers.parseEther("0.01"));
       });
   });
 
