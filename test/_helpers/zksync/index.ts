@@ -39,6 +39,7 @@ export const setupIntegration = deployments.createFixture(async ({  }) => {
   const PRIVATE_KEY = process.env.ZKSYNC_SEPOLIA_PRIVATE_KEY !== undefined ? process.env.ZKSYNC_SEPOLIA_PRIVATE_KEY : "";
   const zkWallet = new Wallet(PRIVATE_KEY,provider);
   const deployerAccount = new Deployer(hre, zkWallet);
+  await signer.sendTransaction({ to: deployerAccount.zkWallet.address, value: ethers.parseEther("10.0") });
   const contract = await deployerAccount.loadArtifact(contractName);
   const playFiLicenseSale = (await hre.zkUpgrades.deployProxy(deployerAccount.zkWallet, contract, [admin, guardian, merkleManager, referralManager], { initializer: "initialize" })) as unknown as PlayFiLicenseSale;
   await playFiLicenseSale.waitForDeployment();

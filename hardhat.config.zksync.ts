@@ -39,7 +39,7 @@ const config: HardhatUserConfig = {
         url:
             "https://zksync-mainnet.g.alchemy.com/v2/" +
             (process.env.ZKSYNC_ALCHEMY_KEY !== undefined ? process.env.ZKSYNC_ALCHEMY_KEY : ""),
-        blockNumber: 33299846,
+        //blockNumber: 'latest',
         enabled: process.env.FORKING !== undefined && process.env.FORKING == "true" ? true : false,
       },
       accounts: {
@@ -118,7 +118,7 @@ const config: HardhatUserConfig = {
       300: 0
     },
     playFiLicenseSaleProxy: {
-      300: "0x9c04477c8b551a7c82a1C5dFcaE9ce8BEd3A9cbd"
+      300: "0x107f20919a98475AFA234540202c1511ad546c08"
     }
   },
 };
