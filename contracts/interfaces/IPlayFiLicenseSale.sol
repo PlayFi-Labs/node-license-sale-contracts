@@ -57,7 +57,6 @@ interface IPlayFiLicenseSale
     event TeamMerkleRootSet(bytes32 merkleRoot);
     event FriendsFamilyMerkleRootSet(bytes32 merkleRoot);
     event EarlyAccessMerkleRootSet(bytes32 merkleRoot);
-    event PartnerMerkleRootSet(bytes32 merkleRoot);
     event PublicMerkleRootSet(bytes32 merkleRoot);
     event TeamSaleStatusSet(bool status);
     event FriendsFamilySaleStatusSet(bool status);
