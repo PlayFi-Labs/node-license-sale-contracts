@@ -97,6 +97,8 @@ interface IPlayFiLicenseSale
 
     function claimLicensePublic(uint256 amount, uint256 tier, string calldata referral) external payable;
 
+    function claimLicensePublicWhitelist(uint256 amount, uint256 tier, bytes calldata data, bytes32[] calldata merkleProof) external payable;
+
     function paymentDetailsForReferral(uint256 amount, uint256 tier, string calldata referral, bool isWhitelist) external view returns (uint256 toPay, uint256 commission, uint256 discount);
 
     function paymentDetailsForPartnerReferral(uint256 amount, uint256 tier, string calldata partnerCode, string calldata referral) external view returns (uint256 toPay, uint256 commission, uint256 discount);

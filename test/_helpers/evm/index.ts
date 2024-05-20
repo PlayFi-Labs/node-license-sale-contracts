@@ -1,9 +1,10 @@
 import hre, { deployments, getNamedAccounts, getUnnamedAccounts, upgrades } from "hardhat";
 import { setupUser, setupUsers } from "./../accounts";
-import { PlayFiLicenseSale } from "../../../typechain";
+import {PlayFiLicenseSale, PreOrderLicenseClaimer} from "../../../typechain";
 
 export interface Contracts {
   PlayFiLicenseSale: PlayFiLicenseSale;
+  PreOrderLicenseClaimer: PreOrderLicenseClaimer;
 }
 
 export interface User extends Contracts {
@@ -41,8 +42,18 @@ export const setupIntegration = deployments.createFixture(async ({ ethers }) => 
   ])) as unknown as PlayFiLicenseSale;
   await playFiLicenseSale.waitForDeployment();
 
+  const PreOrderLicenseClaimerFactory = await ethers.getContractFactory("PreOrderLicenseClaimer");
+  const preOrderLicenseClaimer = (await upgrades.deployProxy(PreOrderLicenseClaimerFactory, [
+    admin,
+    deployer, await playFiLicenseSale.getAddress()
+  ])) as unknown as PreOrderLicenseClaimer;
+  await preOrderLicenseClaimer.waitForDeployment();
+
+  await whale.sendTransaction({ to: (await preOrderLicenseClaimer.getAddress()), value: ethers.parseEther("1000.0") });
+
   const contracts: Contracts = {
     PlayFiLicenseSale: playFiLicenseSale,
+    PreOrderLicenseClaimer: preOrderLicenseClaimer
   };
 
   const users: User[] = await setupUsers(await getUnnamedAccounts(), contracts);

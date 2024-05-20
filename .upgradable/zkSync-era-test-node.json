@@ -2,34 +2,59 @@
   "manifestVersion": "3.2",
   "admin": {
     "address": "0x064513a65920264f14f15B2704d351d88ec4992A",
-    "txHash": "0x1225c4b5f389ef4218742c3499115e2cb4451af7fad250e7a361f83f37c03db7"
+    "txHash": "0xdedb1b0222eb255d36e9511b614e6e318f4357fd9086f08873d36f9e073c69b1"
   },
   "proxies": [
     {
       "address": "0x49Bf956934eE5FF4B2Bbe86421FbBBb29E63016F",
-      "txHash": "0xdf8506e718d1b36244023227004e147d5a50874469ddfad76066b600048c3931",
-      "kind": "transparent"
-    },
-    {
-      "address": "0xe559eE4f1FBfA0098C6a004101FCCe0AfF457D6C",
-      "txHash": "0x92ebecb10165c2c91567c98dd46f2115cef1dbf7ef270016a4bcc92ca5738621",
+      "txHash": "0x8eae998c159f8fa64cecd59c7c42e1cf287f30dd42a188f10a35e47c4b46cdfa",
       "kind": "transparent"
     },
     {
       "address": "0x85F24Ca0Af7505451447470230D06946c9B30828",
-      "txHash": "0xf635419c2f53c7732774ed4f0b0d3053f52b3b0d35e9c1702b1052b49e2e5865",
+      "txHash": "0x1bcfced52151c3bd6e91e1526ffe199c624131652e30fc5d365c4012b38833b8",
       "kind": "transparent"
     },
     {
       "address": "0xD9aB4Cb25B98b9E7c5913B70C90B477eBE628e23",
-      "txHash": "0x3deb16440a5a85e4a6b6c87b7365003d5a11f1e322070616a111d4486f4d6dda",
+      "txHash": "0x82115e67a975ec18531bc7a2a2809a99dba3bfdb9c020bdf293d3835d0429741",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x34E1BB3A5d558C4C7711231f632dF17e9a2A1A8b",
+      "txHash": "0xc1585ee287902c2742026a78a781f4d33a6e2b5c668a6dd048eb5eb1c4fa7361",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x906aF4a6C66C34FEec4912FbB01E609F9c18a4EC",
+      "txHash": "0x0daadad5ca27f37d73b10498b9bb1d4a12f809b8d532b025a6e43a38f3746990",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xBecA9B8984D2D3f51530D9cD315603F53A3f1883",
+      "txHash": "0x7c072389fbf8987cbb9ce9ad6c08df6c6db71a58b897701c05550c775fa0e2f5",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x63a772856fD4AD6d543831232C17671d79d52Abe",
+      "txHash": "0x99fd5694b24ade6e6d5d98abd4162338f38ad83295162e35fe0ecc83888d8206",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x42281861Bf3b71eb5c583FD05e08bf9658180d09",
+      "txHash": "0x30e7cd63186456669136ea83ff1c9f186b4183cdafb8c6f2504ee2f9af418008",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x649F8049E8547428c23427FeB4fb5C61657cBAFe",
+      "txHash": "0x2c353758ad8670e47c7f84a9f983107d2cd55ce1c5e273c5015b7bf6d414e8e4",
       "kind": "transparent"
     }
   ],
   "impls": {
-    "fc72289fb6d7f8f2c844d5bf3a852d5ea2cf6253648f27d1e5a6667ef0f7728c": {
+    "59bb5dd8ba6302e47b51898d747c796a8717051407f50e4212b19d0c16defa28": {
       "address": "0xEb116E0C0B16BBAA8ce0154b35917c3432484939",
-      "txHash": "0x37b61286488b189e8b78d6c60ac75a5f20bc7d84963aaa754e75927d0ce94e86",
+      "txHash": "0x77b51c0c35df404ebbb544c43901b09288f5bd415342b8cd3c0436a1defd3a94",
       "layout": {
         "solcVersion": "0.8.24",
         "storage": [
@@ -222,7 +247,7 @@
             "label": "tiers",
             "offset": 0,
             "slot": "165",
-            "type": "t_mapping(t_uint256,t_struct(Tier)5888_storage)",
+            "type": "t_mapping(t_uint256,t_struct(Tier)6145_storage)",
             "contract": "PlayFiLicenseSale",
             "src": "contracts/PlayFiLicenseSale.sol:73"
           },
@@ -230,7 +255,7 @@
             "label": "whitelistTiers",
             "offset": 0,
             "slot": "166",
-            "type": "t_mapping(t_uint256,t_struct(Tier)5888_storage)",
+            "type": "t_mapping(t_uint256,t_struct(Tier)6145_storage)",
             "contract": "PlayFiLicenseSale",
             "src": "contracts/PlayFiLicenseSale.sol:74"
           },
@@ -238,7 +263,7 @@
             "label": "partnerTiers",
             "offset": 0,
             "slot": "167",
-            "type": "t_mapping(t_string_memory_ptr,t_mapping(t_uint256,t_struct(Tier)5888_storage))",
+            "type": "t_mapping(t_string_memory_ptr,t_mapping(t_uint256,t_struct(Tier)6145_storage))",
             "contract": "PlayFiLicenseSale",
             "src": "contracts/PlayFiLicenseSale.sol:75"
           },
@@ -246,7 +271,7 @@
             "label": "referrals",
             "offset": 0,
             "slot": "168",
-            "type": "t_mapping(t_string_memory_ptr,t_struct(Referral)5895_storage)",
+            "type": "t_mapping(t_string_memory_ptr,t_struct(Referral)6152_storage)",
             "contract": "PlayFiLicenseSale",
             "src": "contracts/PlayFiLicenseSale.sol:76"
           },
@@ -324,11 +349,11 @@
             "label": "mapping(string => mapping(uint256 => mapping(address => uint256)))",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_string_memory_ptr,t_mapping(t_uint256,t_struct(Tier)5888_storage))": {
+          "t_mapping(t_string_memory_ptr,t_mapping(t_uint256,t_struct(Tier)6145_storage))": {
             "label": "mapping(string => mapping(uint256 => struct IPlayFiLicenseSale.Tier))",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_string_memory_ptr,t_struct(Referral)5895_storage)": {
+          "t_mapping(t_string_memory_ptr,t_struct(Referral)6152_storage)": {
             "label": "mapping(string => struct IPlayFiLicenseSale.Referral)",
             "numberOfBytes": "32"
           },
@@ -340,7 +365,7 @@
             "label": "mapping(uint256 => mapping(address => uint256))",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_uint256,t_struct(Tier)5888_storage)": {
+          "t_mapping(t_uint256,t_struct(Tier)6145_storage)": {
             "label": "mapping(uint256 => struct IPlayFiLicenseSale.Tier)",
             "numberOfBytes": "32"
           },
@@ -348,7 +373,7 @@
             "label": "string",
             "numberOfBytes": "32"
           },
-          "t_struct(Referral)5895_storage": {
+          "t_struct(Referral)6152_storage": {
             "label": "struct IPlayFiLicenseSale.Referral",
             "members": [
               {
@@ -390,7 +415,7 @@
             ],
             "numberOfBytes": "64"
           },
-          "t_struct(Tier)5888_storage": {
+          "t_struct(Tier)6145_storage": {
             "label": "struct IPlayFiLicenseSale.Tier",
             "members": [
               {
@@ -430,6 +455,133 @@
           },
           "t_string_storage": {
             "label": "string"
+          }
+        },
+        "namespaces": {}
+      }
+    },
+    "fc70bddbad46d9829dd72093a7ee9bfe02ace2e70d981e71870ba00f58562796": {
+      "address": "0xe559eE4f1FBfA0098C6a004101FCCe0AfF457D6C",
+      "txHash": "0xe5acd6f9ab5a7a8fafbe5eb93dc52a5e1e7dda375a5e191ebdb60c0a8a0718b1",
+      "layout": {
+        "solcVersion": "0.8.24",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:68"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:40"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC165Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol:41"
+          },
+          {
+            "label": "_roles",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)23_storage)",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:57"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:260"
+          },
+          {
+            "label": "licenseSale",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_contract(IPlayFiLicenseSale)6643",
+            "contract": "PreOrderLicenseClaimer",
+            "src": "contracts/PreOrderLicenseClaimer.sol:49"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IPlayFiLicenseSale)6643": {
+            "label": "contract IPlayFiLicenseSale",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)23_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(RoleData)23_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "members",
+                "type": "t_mapping(t_address,t_bool)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
           }
         },
         "namespaces": {}

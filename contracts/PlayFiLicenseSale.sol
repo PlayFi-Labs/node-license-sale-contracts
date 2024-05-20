@@ -116,7 +116,7 @@ IPlayFiLicenseSale
     /// @param amount The amount of licenses to claim
     /// @param data Index and claimCap in encoded format
     /// @param merkleProof The proof used to verify whether the caller is allowed to claim the licenses
-    function claimLicenseTeam(uint256 amount, bytes calldata data, bytes32[] calldata merkleProof) external {
+    function claimLicenseTeam(uint256 amount, bytes calldata data, bytes32[] calldata merkleProof) public {
         if(!teamSaleActive) revert TeamSaleNotActive();
         (uint256 index, uint256 claimCap) = abi.decode(data,(uint256,uint256));
         uint256 claimedLicenses = teamClaimsPerAddress[msg.sender];
@@ -133,7 +133,7 @@ IPlayFiLicenseSale
     /// @param amount The amount of licenses to claim
     /// @param data Index and claimCap in encoded format
     /// @param merkleProof The proof used to verify weather the caller is allowed to claim the licenses
-    function claimLicenseFriendsFamily(uint256 amount, bytes calldata data, bytes32[] calldata merkleProof) external payable {
+    function claimLicenseFriendsFamily(uint256 amount, bytes calldata data, bytes32[] calldata merkleProof) public payable {
         if(!friendsFamilySaleActive) revert FriendsFamilySaleNotActive();
         (uint256 index, uint256 claimCap) = abi.decode(data,(uint256,uint256));
         uint256 claimedLicenses = friendsFamilyClaimsPerAddress[msg.sender];
@@ -152,7 +152,7 @@ IPlayFiLicenseSale
     /// @param amount The amount of licenses to claim
     /// @param data Index and claimCap in encoded format
     /// @param merkleProof The proof used to verify whether the caller is allowed to claim the licenses
-    function claimLicenseEarlyAccess(uint256 amount, bytes calldata data, bytes32[] calldata merkleProof) external payable {
+    function claimLicenseEarlyAccess(uint256 amount, bytes calldata data, bytes32[] calldata merkleProof) public payable {
         if(!earlyAccessSaleActive) revert EarlyAccessSaleNotActive();
         (uint256 index, uint256 claimCap) = abi.decode(data,(uint256,uint256));
         uint256 claimedLicenses = earlyAccessClaimsPerAddress[msg.sender];
@@ -171,7 +171,7 @@ IPlayFiLicenseSale
     /// @param amount The amount of licenses to claim
     /// @param partnerCode The code of the partner sale
     /// @param referral A referral code that can give discounts.
-    function claimLicensePartner(uint256 amount,  uint256 tier, string memory partnerCode, string memory referral) external payable {
+    function claimLicensePartner(uint256 amount,  uint256 tier, string memory partnerCode, string memory referral) public payable {
         if(!partnerSaleActive[partnerCode]) revert PartnerSaleNotActive();
         if(partnerTiers[partnerCode][tier].totalClaimed + amount > partnerTiers[partnerCode][tier].totalCap) revert TotalTierCapExceeded();
         if(partnerClaimsPerTierPerAddress[partnerCode][tier][msg.sender] + amount > partnerTiers[partnerCode][tier].individualCap) revert IndividualTierCapExceeded();
@@ -197,7 +197,7 @@ IPlayFiLicenseSale
     /// @param amount The amount of licenses to claim
     /// @param tier The tier to buy the licenses from
     /// @param referral A referral code that can give discounts.
-    function claimLicensePublic(uint256 amount, uint256 tier, string memory referral) external payable {
+    function claimLicensePublic(uint256 amount, uint256 tier, string memory referral) public payable {
         if(!publicSaleActive) revert PublicSaleNotActive();
         if(tiers[tier].totalClaimed + amount > tiers[tier].totalCap) revert TotalTierCapExceeded();
         if(claimsPerTierPerAddress[tier][msg.sender] + amount > tiers[tier].individualCap) revert IndividualTierCapExceeded();
@@ -224,7 +224,7 @@ IPlayFiLicenseSale
     /// @param tier The tier to buy the licenses from
     /// @param data Index, claimCap and referral in encoded format
     /// @param merkleProof The proof used to verify weather the caller is allowed to claim the licenses
-    function claimLicensePublicWhitelist(uint256 amount, uint256 tier, bytes calldata data, bytes32[] calldata merkleProof) external payable {
+    function claimLicensePublicWhitelist(uint256 amount, uint256 tier, bytes calldata data, bytes32[] calldata merkleProof) public payable {
         if(!publicSaleActive) revert PublicSaleNotActive();
         (uint256 index, uint256 claimCap, string memory referral) = abi.decode(data,(uint256,uint256,string));
         if(whitelistTiers[tier].totalClaimed + amount > whitelistTiers[tier].totalCap) revert TotalTierCapExceeded();
@@ -329,7 +329,7 @@ IPlayFiLicenseSale
     /// @param prices The prices of each tier to set
     /// @param individualCaps The maximum amount of licenses that can be claimed per address for the tiers.
     /// @param totalCaps The maximum amount of licenses that can be claimed in total for the tiers.
-    function setTiers(uint256[] calldata ids, uint256[] calldata prices, uint256[] calldata individualCaps, uint256[] calldata totalCaps) external onlyAdmin {
+    function setTiers(uint256[] calldata ids, uint256[] calldata prices, uint256[] calldata individualCaps, uint256[] calldata totalCaps) public onlyAdmin {
         if(ids.length != prices.length || prices.length != individualCaps.length || individualCaps.length != totalCaps.length) revert InvalidTierInputs();
         for (uint256 i = 0; i < ids.length; ) {
             uint256 totalClaimed = tiers[ids[i]].totalClaimed;
@@ -346,7 +346,7 @@ IPlayFiLicenseSale
     /// @param prices The prices of each tier to set
     /// @param individualCaps The maximum amount of licenses that can be claimed per address for the tiers.
     /// @param totalCaps The maximum amount of licenses that can be claimed in total for the tiers.
-    function setWhitelistTiers(uint256[] calldata ids, uint256[] calldata prices, uint256[] calldata individualCaps, uint256[] calldata totalCaps) external onlyAdmin {
+    function setWhitelistTiers(uint256[] calldata ids, uint256[] calldata prices, uint256[] calldata individualCaps, uint256[] calldata totalCaps) public onlyAdmin {
         if(ids.length != prices.length || prices.length != individualCaps.length || individualCaps.length != totalCaps.length) revert InvalidTierInputs();
         for (uint256 i = 0; i < ids.length; ) {
             uint256 totalClaimed = whitelistTiers[ids[i]].totalClaimed;
@@ -364,7 +364,7 @@ IPlayFiLicenseSale
     /// @param prices The prices of each tier to set
     /// @param individualCaps The maximum amount of licenses that can be claimed per address for the tiers.
     /// @param totalCaps The maximum amount of licenses that can be claimed in total for the tiers.
-    function setPartnerTiers(string[] calldata partnerCodes, uint256[] calldata ids, uint256[] calldata prices, uint256[] calldata individualCaps, uint256[] calldata totalCaps) external onlyAdmin {
+    function setPartnerTiers(string[] calldata partnerCodes, uint256[] calldata ids, uint256[] calldata prices, uint256[] calldata individualCaps, uint256[] calldata totalCaps) public onlyAdmin {
         if(partnerCodes.length != ids.length || ids.length != prices.length || prices.length != individualCaps.length || individualCaps.length != totalCaps.length) revert InvalidTierInputs();
         for (uint256 i = 0; i < ids.length; ) {
             uint256 totalClaimed = partnerTiers[partnerCodes[i]][ids[i]].totalClaimed;
@@ -378,49 +378,49 @@ IPlayFiLicenseSale
 
     /// @notice Sets the team sale merkle root
     /// @param _teamMerkleRoot The root of the team sale merkle tree
-    function setTeamMerkleRoot(bytes32 _teamMerkleRoot) external onlyMerkleManager {
+    function setTeamMerkleRoot(bytes32 _teamMerkleRoot) public onlyMerkleManager {
         teamMerkleRoot = _teamMerkleRoot;
         emit TeamMerkleRootSet(_teamMerkleRoot);
     }
 
     /// @notice Sets the friends and family sale merkle root
     /// @param _friendsFamilyMerkleRoot The root of the friends and family sale merkle tree
-    function setFriendsFamilyMerkleRoot(bytes32 _friendsFamilyMerkleRoot) external onlyMerkleManager {
+    function setFriendsFamilyMerkleRoot(bytes32 _friendsFamilyMerkleRoot) public onlyMerkleManager {
         friendsFamilyMerkleRoot = _friendsFamilyMerkleRoot;
         emit FriendsFamilyMerkleRootSet(_friendsFamilyMerkleRoot);
     }
 
     /// @notice Sets the early access sale merkle root
     /// @param _earlyAccessMerkleRoot The root of the early access sale merkle tree
-    function setEarlyAccessMerkleRoot(bytes32 _earlyAccessMerkleRoot) external onlyMerkleManager {
+    function setEarlyAccessMerkleRoot(bytes32 _earlyAccessMerkleRoot) public onlyMerkleManager {
         earlyAccessMerkleRoot = _earlyAccessMerkleRoot;
         emit EarlyAccessMerkleRootSet(_earlyAccessMerkleRoot);
     }
 
     /// @notice Sets the public sale merkle root
     /// @param _publicMerkleRoot The root of the public sale merkle tree
-    function setPublicMerkleRoot(bytes32 _publicMerkleRoot) external onlyMerkleManager {
+    function setPublicMerkleRoot(bytes32 _publicMerkleRoot) public onlyMerkleManager {
         publicMerkleRoot = _publicMerkleRoot;
         emit PublicMerkleRootSet(_publicMerkleRoot);
     }
 
     /// @notice Sets the team sale status
     /// @param status The status to set for the team sale
-    function setTeamSale(bool status) external onlyGuardian {
+    function setTeamSale(bool status) public onlyGuardian {
         teamSaleActive = status;
         emit TeamSaleStatusSet(status);
     }
 
     /// @notice Sets the friends and family sale status
     /// @param status The status to set for the friends and family sale
-    function setFriendsFamilySale(bool status) external onlyGuardian {
+    function setFriendsFamilySale(bool status) public onlyGuardian {
         friendsFamilySaleActive = status;
         emit FriendsFamilySaleStatusSet(status);
     }
 
     /// @notice Sets the early access sale status
     /// @param status The status to set for the early access sale
-    function setEarlyAccessSale(bool status) external onlyGuardian {
+    function setEarlyAccessSale(bool status) public onlyGuardian {
         earlyAccessSaleActive = status;
         emit EarlyAccessSaleStatusSet(status);
     }
@@ -428,14 +428,14 @@ IPlayFiLicenseSale
     /// @notice Sets the partner sale status
     /// @param partnerCode The code of the partner sale to set the status from
     /// @param status The status to set for the partner sale
-    function setPartnerSale(string memory partnerCode, bool status) external onlyGuardian {
+    function setPartnerSale(string memory partnerCode, bool status) public onlyGuardian {
         partnerSaleActive[partnerCode] = status;
         emit PartnerSaleStatusSet(status, partnerCode);
     }
 
     /// @notice Sets the public sale status
     /// @param status The status to set for the public sale
-    function setPublicSale(bool status) external onlyGuardian {
+    function setPublicSale(bool status) public onlyGuardian {
         publicSaleActive = status;
         emit PublicSaleStatusSet(status);
     }

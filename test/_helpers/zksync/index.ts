@@ -3,7 +3,7 @@ import hre, { deployments, getNamedAccounts, getUnnamedAccounts } from "hardhat"
 import { setupUser, setupUsers } from "./../accounts";
 import {Provider, types, utils, Wallet} from "zksync-ethers";
 import {Deployer} from "@matterlabs/hardhat-zksync";
-import { PlayFiLicenseSale} from "../../../typechain";
+import {PlayFiLicenseSale, PreOrderLicenseClaimer} from "../../../typechain";
 import "@matterlabs/hardhat-zksync-node/dist/type-extensions";
 import {ethers} from "hardhat";
 
@@ -12,6 +12,7 @@ dotenv.config();
 
 export interface Contracts {
   PlayFiLicenseSale: PlayFiLicenseSale;
+  PreOrderLicenseClaimer: PreOrderLicenseClaimer;
 }
 
 export interface User extends Contracts {
@@ -44,8 +45,15 @@ export const setupIntegration = deployments.createFixture(async ({  }) => {
   const playFiLicenseSale = (await hre.zkUpgrades.deployProxy(deployerAccount.zkWallet, contract, [admin, guardian, merkleManager, referralManager], { initializer: "initialize" })) as unknown as PlayFiLicenseSale;
   await playFiLicenseSale.waitForDeployment();
 
+  const contract2 = await deployerAccount.loadArtifact("PreOrderLicenseClaimer");
+  const preOrderLicenseClaimer = (await hre.zkUpgrades.deployProxy(deployerAccount.zkWallet, contract2, [admin, deployer, await playFiLicenseSale.getAddress()], { initializer: "initialize" })) as unknown as PreOrderLicenseClaimer;
+  await preOrderLicenseClaimer.waitForDeployment();
+
+  await signer.sendTransaction({ to: await preOrderLicenseClaimer.getAddress(), value: ethers.parseEther("1000.0") });
+
   const contracts: Contracts = {
     PlayFiLicenseSale: playFiLicenseSale,
+    PreOrderLicenseClaimer: preOrderLicenseClaimer
   };
 
   const users: User[] = await setupUsers(await getUnnamedAccounts(), contracts);
