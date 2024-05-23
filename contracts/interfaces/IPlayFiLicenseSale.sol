@@ -41,8 +41,8 @@ interface IPlayFiLicenseSale
     }
 
     struct Referral {
-        uint256 discountPercentage;
-        uint256 commissionPercentage;
+        bool active;
+        uint256 totalClaims;
         address receiver;
     }
 
@@ -53,7 +53,7 @@ interface IPlayFiLicenseSale
     event CommissionPaid(string code, address indexed receiver, uint256 amount);
     event PublicLicensesClaimed(address indexed account, uint256 amount, uint256 indexed tier, uint256 paid, string referral);
     event PublicWhitelistLicensesClaimed(address indexed account, uint256 amount, uint256 indexed tier, uint256 paid, string referral);
-    event ReferralUpdated(string code, address indexed receiver, uint256 commission, uint256 discount);
+    event ReferralUpdated(string code, address indexed receiver, bool active);
     event TeamMerkleRootSet(bytes32 merkleRoot);
     event FriendsFamilyMerkleRootSet(bytes32 merkleRoot);
     event EarlyAccessMerkleRootSet(bytes32 merkleRoot);
@@ -109,7 +109,7 @@ interface IPlayFiLicenseSale
 
     function getReferral(string memory id) external view returns(Referral memory referral);
 
-    function setReferral(string memory code, address receiver, uint256 commission, uint256 discount) external;
+    function setReferral(string memory code, address receiver, bool active) external;
 
     function setTeamMerkleRoot(bytes32 _teamMerkleRoot) external;
 
@@ -152,10 +152,6 @@ interface IPlayFiLicenseSale
     function partnerSaleActive(string calldata) external view returns (bool);
 
     function publicSaleActive() external view returns (bool);
-
-    function standardCommissionPercentage() external view returns (uint256);
-
-    function standardDiscountPercentage() external view returns (uint256);
 
     function totalLicenses() external view returns (uint256);
 
