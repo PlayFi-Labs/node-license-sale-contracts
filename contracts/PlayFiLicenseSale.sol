@@ -59,8 +59,6 @@ IPlayFiLicenseSale
     bool public override earlyAccessSaleActive;
     bool public override publicSaleActive;
 
-    uint256 public override standardCommissionPercentage;
-    uint256 public override standardDiscountPercentage;
     uint256 public override totalLicenses;
 
     mapping(address => uint256) public teamClaimsPerAddress;
@@ -105,9 +103,6 @@ IPlayFiLicenseSale
         _setRoleAdmin(MERKLE_MANAGER_ROLE, ADMIN_ROLE);
         _grantRole(REFERRAL_MANAGER_ROLE, referralManager);
         _setRoleAdmin(REFERRAL_MANAGER_ROLE, ADMIN_ROLE);
-
-        standardCommissionPercentage = 5;
-        standardDiscountPercentage = 5;
 
         emit ContractInitialized();
     }
@@ -170,21 +165,29 @@ IPlayFiLicenseSale
     /// they paid enough.
     /// @param amount The amount of licenses to claim
     /// @param partnerCode The code of the partner sale
-    /// @param referral A referral code that can give discounts.
     function claimLicensePartner(uint256 amount,  uint256 tier, string memory partnerCode, string memory referral) public payable {
         if(!partnerSaleActive[partnerCode]) revert PartnerSaleNotActive();
         if(partnerTiers[partnerCode][tier].totalClaimed + amount > partnerTiers[partnerCode][tier].totalCap) revert TotalTierCapExceeded();
         if(partnerClaimsPerTierPerAddress[partnerCode][tier][msg.sender] + amount > partnerTiers[partnerCode][tier].individualCap) revert IndividualTierCapExceeded();
         (uint256 toPay, uint256 commission,) = paymentDetailsForPartnerReferral(amount, tier, partnerCode, referral);
         if(msg.value < toPay) revert InsufficientPayment();
-        if(commission > 0) {
-            (bool sent, ) = payable(referrals[referral].receiver).call{ value: commission }("");
-            if (!sent) revert CommissionPayoutFailed();
-            emit CommissionPaid(referral, referrals[referral].receiver, commission);
-        }
-        string memory addressAsString = Strings.toHexString(msg.sender);
-        if(referrals[addressAsString].discountPercentage == 0) {
-            _setReferral(addressAsString, msg.sender, standardCommissionPercentage, standardDiscountPercentage);
+        if(referrals[partnerCode].active) {
+            if(commission > 0) {
+                (bool sent, ) = payable(referrals[partnerCode].receiver).call{ value: commission }("");
+                if (!sent) revert CommissionPayoutFailed();
+                emit CommissionPaid(partnerCode, referrals[partnerCode].receiver, commission);
+            }
+        } else {
+            if(commission > 0) {
+                (bool sent, ) = payable(referrals[referral].receiver).call{ value: commission }("");
+                if (!sent) revert CommissionPayoutFailed();
+                emit CommissionPaid(referral, referrals[referral].receiver, commission);
+            }
+            string memory addressAsString = Strings.toHexString(msg.sender);
+            if(!referrals[addressAsString].active) {
+                _setReferral(addressAsString, msg.sender, true);
+            }
+            referrals[referral].totalClaims += amount;
         }
         partnerTiers[partnerCode][tier].totalClaimed += amount;
         partnerClaimsPerAddress[partnerCode][msg.sender] += amount;
@@ -209,12 +212,13 @@ IPlayFiLicenseSale
             emit CommissionPaid(referral, referrals[referral].receiver, commission);
         }
         string memory addressAsString = Strings.toHexString(msg.sender);
-        if(referrals[addressAsString].discountPercentage == 0) {
-            _setReferral(addressAsString, msg.sender, standardCommissionPercentage, standardDiscountPercentage);
+        if(!referrals[addressAsString].active) {
+            _setReferral(addressAsString, msg.sender, true);
         }
         tiers[tier].totalClaimed += amount;
         publicClaimsPerAddress[msg.sender] += amount;
         totalLicenses += amount;
+        referrals[referral].totalClaims += amount;
         emit PublicLicensesClaimed(msg.sender, amount, tier, toPay, referral);
     }
 
@@ -242,12 +246,13 @@ IPlayFiLicenseSale
             emit CommissionPaid(referral, referrals[referral].receiver, commission);
         }
         string memory addressAsString = Strings.toHexString(msg.sender);
-        if(referrals[addressAsString].discountPercentage == 0) {
-            _setReferral(addressAsString, msg.sender, standardCommissionPercentage, standardDiscountPercentage);
+        if(!referrals[addressAsString].active) {
+            _setReferral(addressAsString, msg.sender, true);
         }
         whitelistTiers[tier].totalClaimed += amount;
         publicWhitelistClaimsPerAddressAndReferral[msg.sender][referral] += amount;
         totalLicenses += amount;
+        referrals[referral].totalClaims += amount;
         emit PublicWhitelistLicensesClaimed(msg.sender, amount, tier, toPay, referral);
     }
 
@@ -267,24 +272,61 @@ IPlayFiLicenseSale
             tierPrice = tiers[tier].price;
         }
         uint256 fullPrice = tierPrice * amount;
-        discount = fullPrice * referrals[referral].discountPercentage / 100;
-        commission = fullPrice * referrals[referral].commissionPercentage / 100;
+        if(referrals[referral].active) {
+            discount = fullPrice * 5 / 100;
+            uint256 totalClaims = referrals[referral].totalClaims;
+            if(totalClaims < 25) {
+                commission = fullPrice * 10 / 100;
+            } else if (totalClaims < 50) {
+                commission = fullPrice * 125 / 1000;
+            } else if (totalClaims < 75) {
+                commission = fullPrice * 15 / 100;
+            } else if (totalClaims < 100) {
+                commission = fullPrice * 175 / 1000;
+            } else if (totalClaims < 150) {
+                commission = fullPrice * 20 / 100;
+            } else if (totalClaims < 200) {
+                commission = fullPrice * 225 / 1000;
+            } else {
+                commission = fullPrice * 25 / 100;
+            }
+        }
         toPay = fullPrice - discount;
     }
 
-    /// @notice Calculates the price, commission and discount for X number of licenses in partner tier Y given referral code Z and partnerCod W
+    /// @notice Calculates the price, commission and discount for X number of licenses in partner tier Y given partnerCod Z
     /// @param amount The amount of licenses to claim
     /// @param tier The tier to buy the licenses from
     /// @param partnerCode The code identifying the partner sale
-    /// @param referral A referral code that can give discounts.
     /// @return toPay The amount of ETH that should be paid by the claimer.
     /// @return commission The commission in ETH that the referrer will get.
     /// @return discount The discount in ETH the claimer will get
     function paymentDetailsForPartnerReferral(uint256 amount, uint256 tier, string memory partnerCode, string memory referral) public view returns (uint256 toPay, uint256 commission, uint256 discount) {
         uint256 tierPrice = partnerTiers[partnerCode][tier].price;
         uint256 fullPrice = tierPrice * amount;
-        discount = fullPrice * referrals[referral].discountPercentage / 100;
-        commission = fullPrice * referrals[referral].commissionPercentage / 100;
+        if(referrals[partnerCode].active) {
+            commission = fullPrice * 10 / 100;
+        } else {
+            if(referrals[referral].active) {
+                discount = fullPrice * 5 / 100;
+                uint256 totalClaims = referrals[referral].totalClaims;
+                if(totalClaims < 25) {
+                    commission = fullPrice * 10 / 100;
+                } else if (totalClaims < 50) {
+                    commission = fullPrice * 125 / 1000;
+                } else if (totalClaims < 75) {
+                    commission = fullPrice * 15 / 100;
+                } else if (totalClaims < 100) {
+                    commission = fullPrice * 175 / 1000;
+                } else if (totalClaims < 150) {
+                    commission = fullPrice * 20 / 100;
+                } else if (totalClaims < 200) {
+                    commission = fullPrice * 225 / 1000;
+                } else {
+                    commission = fullPrice * 25 / 100;
+                }
+            }
+        }
         toPay = fullPrice - discount;
     }
 
@@ -318,10 +360,9 @@ IPlayFiLicenseSale
     /// @notice Sets referral details
     /// @param code The referral code to be used when claiming
     /// @param receiver The receiver address for the commissions
-    /// @param commission The percentage of the total price to be used as a commission
-    /// @param discount The percentage of the total price to be used as a discount
-    function setReferral(string memory code, address receiver, uint256 commission, uint256 discount) public onlyReferralManager {
-        _setReferral(code, receiver, commission, discount);
+    /// @param active Whether the referral should be active or not
+    function setReferral(string memory code, address receiver, bool active) public onlyReferralManager {
+        _setReferral(code, receiver, active);
     }
 
     /// @notice Sets tier details
@@ -448,13 +489,10 @@ IPlayFiLicenseSale
         emit ProceedsWithdrawn(msg.sender, amount);
     }
 
-    function _setReferral(string memory code, address receiver, uint256 commission, uint256 discount) internal {
-        if(discount > 50) revert InvalidDiscount();
-        if(commission > 50) revert InvalidCommission();
-        referrals[code].discountPercentage = discount;
-        referrals[code].commissionPercentage = commission;
+    function _setReferral(string memory code, address receiver, bool active) internal {
         referrals[code].receiver = receiver;
-        emit ReferralUpdated(code, receiver, commission, discount);
+        referrals[code].active = active;
+        emit ReferralUpdated(code, receiver, active);
     }
 
     modifier onlyAdmin() {
