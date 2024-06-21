@@ -44,6 +44,8 @@ Initializable,
 AccessControlUpgradeable,
 IPlayFiLicenseSale
 {
+    using Strings for string;
+
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN");
     bytes32 public constant GUARDIAN_ROLE = keccak256("GUARDIAN");
     bytes32 public constant MERKLE_MANAGER_ROLE = keccak256("MERKLE_MANAGER");
@@ -72,9 +74,11 @@ IPlayFiLicenseSale
     mapping(uint256 => Tier) public whitelistTiers;
     mapping(string => mapping(uint256 => Tier)) public partnerTiers;
     mapping(string => Referral) public referrals;
+    mapping(address => string) public receiverToReferralCode;
     mapping(uint256 => mapping(address => uint256)) public claimsPerTierPerAddress;
     mapping(string => mapping(uint256 => mapping(address => uint256))) public partnerClaimsPerTierPerAddress;
     mapping(string => bool) public partnerSaleActive;
+    mapping(string => address) public partnerReceiverAddress;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -171,21 +175,17 @@ IPlayFiLicenseSale
         if(partnerClaimsPerTierPerAddress[partnerCode][tier][msg.sender] + amount > partnerTiers[partnerCode][tier].individualCap) revert IndividualTierCapExceeded();
         (uint256 toPay, uint256 commission,) = paymentDetailsForPartnerReferral(amount, tier, partnerCode, referral);
         if(msg.value < toPay) revert InsufficientPayment();
-        if(referrals[partnerCode].active) {
+        if(partnerReceiverAddress[partnerCode] != address(0)) {
             if(commission > 0) {
-                (bool sent, ) = payable(referrals[partnerCode].receiver).call{ value: commission }("");
+                (bool sent, ) = payable(partnerReceiverAddress[partnerCode]).call{ value: commission }("");
                 if (!sent) revert CommissionPayoutFailed();
-                emit CommissionPaid(partnerCode, referrals[partnerCode].receiver, commission);
+                emit CommissionPaid(partnerCode, partnerReceiverAddress[partnerCode], commission);
             }
         } else {
             if(commission > 0) {
                 (bool sent, ) = payable(referrals[referral].receiver).call{ value: commission }("");
                 if (!sent) revert CommissionPayoutFailed();
                 emit CommissionPaid(referral, referrals[referral].receiver, commission);
-            }
-            string memory addressAsString = Strings.toHexString(msg.sender);
-            if(!referrals[addressAsString].active) {
-                _setReferral(addressAsString, msg.sender, true);
             }
             referrals[referral].totalClaims += amount;
         }
@@ -210,10 +210,6 @@ IPlayFiLicenseSale
             (bool sent, ) = payable(referrals[referral].receiver).call{ value: commission }("");
             if (!sent) revert CommissionPayoutFailed();
             emit CommissionPaid(referral, referrals[referral].receiver, commission);
-        }
-        string memory addressAsString = Strings.toHexString(msg.sender);
-        if(!referrals[addressAsString].active) {
-            _setReferral(addressAsString, msg.sender, true);
         }
         tiers[tier].totalClaimed += amount;
         publicClaimsPerAddress[msg.sender] += amount;
@@ -245,10 +241,6 @@ IPlayFiLicenseSale
             if (!sent) revert CommissionPayoutFailed();
             emit CommissionPaid(referral, referrals[referral].receiver, commission);
         }
-        string memory addressAsString = Strings.toHexString(msg.sender);
-        if(!referrals[addressAsString].active) {
-            _setReferral(addressAsString, msg.sender, true);
-        }
         whitelistTiers[tier].totalClaimed += amount;
         publicWhitelistClaimsPerAddressAndReferral[msg.sender][referral] += amount;
         totalLicenses += amount;
@@ -272,8 +264,8 @@ IPlayFiLicenseSale
             tierPrice = tiers[tier].price;
         }
         uint256 fullPrice = tierPrice * amount;
-        if(referrals[referral].active) {
-            discount = fullPrice * 5 / 100;
+        if(referrals[referral].receiver != address(0)) {
+            discount = fullPrice * 10 / 100;
             uint256 totalClaims = referrals[referral].totalClaims;
             if(totalClaims < 25) {
                 commission = fullPrice * 10 / 100;
@@ -304,11 +296,11 @@ IPlayFiLicenseSale
     function paymentDetailsForPartnerReferral(uint256 amount, uint256 tier, string memory partnerCode, string memory referral) public view returns (uint256 toPay, uint256 commission, uint256 discount) {
         uint256 tierPrice = partnerTiers[partnerCode][tier].price;
         uint256 fullPrice = tierPrice * amount;
-        if(referrals[partnerCode].active) {
+        if(partnerReceiverAddress[partnerCode] != address(0)) {
             commission = fullPrice * 10 / 100;
         } else {
-            if(referrals[referral].active) {
-                discount = fullPrice * 5 / 100;
+            if(referrals[referral].receiver != address(0)) {
+                discount = fullPrice * 10 / 100;
                 uint256 totalClaims = referrals[referral].totalClaims;
                 if(totalClaims < 25) {
                     commission = fullPrice * 10 / 100;
@@ -359,10 +351,15 @@ IPlayFiLicenseSale
 
     /// @notice Sets referral details
     /// @param code The referral code to be used when claiming
+    function setReferral(string memory code) public {
+        _setReferral(code, msg.sender);
+    }
+
+    /// @notice Sets referral details for a specific receiver
+    /// @param code The referral code to be used when claiming
     /// @param receiver The receiver address for the commissions
-    /// @param active Whether the referral should be active or not
-    function setReferral(string memory code, address receiver, bool active) public onlyReferralManager {
-        _setReferral(code, receiver, active);
+    function setReferralForReceiver(string memory code, address receiver) public onlyReferralManager {
+        _setReferral(code, receiver);
     }
 
     /// @notice Sets tier details
@@ -474,6 +471,14 @@ IPlayFiLicenseSale
         emit PartnerSaleStatusSet(status, partnerCode);
     }
 
+    /// @notice Sets the partner receiver address
+    /// @param partnerCode The code of the partner sale to set the status from
+    /// @param receiver The receiver address of the partner
+    function setPartnerReceiverAddress(string memory partnerCode, address receiver) public onlyAdmin {
+        partnerReceiverAddress[partnerCode] = receiver;
+        emit PartnerReceiverAddressSet(partnerCode, receiver);
+    }
+
     /// @notice Sets the public sale status
     /// @param status The status to set for the public sale
     function setPublicSale(bool status) public onlyGuardian {
@@ -489,10 +494,19 @@ IPlayFiLicenseSale
         emit ProceedsWithdrawn(msg.sender, amount);
     }
 
-    function _setReferral(string memory code, address receiver, bool active) internal {
+    function _setReferral(string memory code, address receiver) internal {
+        if(referrals[code].receiver != address(0)) revert ReferralCodeInUse();
+        if(code.equal("")) revert InvalidCode();
+        string memory oldReferralCode = receiverToReferralCode[receiver];
+        uint256 totalClaims = 0;
+        if(!oldReferralCode.equal("")) {
+            totalClaims = referrals[receiverToReferralCode[receiver]].totalClaims;
+            delete referrals[receiverToReferralCode[receiver]];
+        }
         referrals[code].receiver = receiver;
-        referrals[code].active = active;
-        emit ReferralUpdated(code, receiver, active);
+        referrals[code].totalClaims = totalClaims;
+        receiverToReferralCode[receiver] = code;
+        emit ReferralUpdated(code, receiver);
     }
 
     modifier onlyAdmin() {

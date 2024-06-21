@@ -6,8 +6,13 @@
   },
   "proxies": [
     {
-      "address": "0x824bD54Bd056fF8C535dC505D41F72103A575482",
-      "txHash": "0xc4e3b5be2b7723f353f59e155162ce246d841f4921930a6ef2f8bedca578a0e2",
+      "address": "0xe27564748489Aa09df264370C4Dcb83BbFf96220",
+      "txHash": "0x949fc9918602ead399907bbd20184ad663f372672e2ce1adafb6534e90b9d0b7",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x76e84aECeF59A95afa610Db2d8a0Db92B0Ca7746",
+      "txHash": "0x98633c1466d26ec0a5a8ee08bed35670a8cd9bd0a698d91e859dbb3c13d83a6d",
       "kind": "transparent"
     }
   ],
@@ -399,6 +404,417 @@
           },
           "t_string_storage": {
             "label": "string"
+          }
+        },
+        "namespaces": {}
+      }
+    },
+    "19d19ea5edab0b83be22d5a57bc5cf8025528be28d12716eb068db8d5c8d10cf": {
+      "address": "0x9A6C1115163DDc813b86eE825847182cBC9a32f5",
+      "txHash": "0xa23be20e1d390aa748f45a6b074fa9be13bd5f0acc1d90612f42a579d2bd9903",
+      "layout": {
+        "solcVersion": "0.8.24",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:68"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:40"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC165Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol:41"
+          },
+          {
+            "label": "_roles",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)23_storage)",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:57"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:260"
+          },
+          {
+            "label": "teamMerkleRoot",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_bytes32",
+            "contract": "PlayFiLicenseSale",
+            "src": "contracts/PlayFiLicenseSale.sol:54"
+          },
+          {
+            "label": "friendsFamilyMerkleRoot",
+            "offset": 0,
+            "slot": "152",
+            "type": "t_bytes32",
+            "contract": "PlayFiLicenseSale",
+            "src": "contracts/PlayFiLicenseSale.sol:55"
+          },
+          {
+            "label": "earlyAccessMerkleRoot",
+            "offset": 0,
+            "slot": "153",
+            "type": "t_bytes32",
+            "contract": "PlayFiLicenseSale",
+            "src": "contracts/PlayFiLicenseSale.sol:56"
+          },
+          {
+            "label": "publicMerkleRoot",
+            "offset": 0,
+            "slot": "154",
+            "type": "t_bytes32",
+            "contract": "PlayFiLicenseSale",
+            "src": "contracts/PlayFiLicenseSale.sol:57"
+          },
+          {
+            "label": "teamSaleActive",
+            "offset": 0,
+            "slot": "155",
+            "type": "t_bool",
+            "contract": "PlayFiLicenseSale",
+            "src": "contracts/PlayFiLicenseSale.sol:59"
+          },
+          {
+            "label": "friendsFamilySaleActive",
+            "offset": 1,
+            "slot": "155",
+            "type": "t_bool",
+            "contract": "PlayFiLicenseSale",
+            "src": "contracts/PlayFiLicenseSale.sol:60"
+          },
+          {
+            "label": "earlyAccessSaleActive",
+            "offset": 2,
+            "slot": "155",
+            "type": "t_bool",
+            "contract": "PlayFiLicenseSale",
+            "src": "contracts/PlayFiLicenseSale.sol:61"
+          },
+          {
+            "label": "publicSaleActive",
+            "offset": 3,
+            "slot": "155",
+            "type": "t_bool",
+            "contract": "PlayFiLicenseSale",
+            "src": "contracts/PlayFiLicenseSale.sol:62"
+          },
+          {
+            "label": "totalLicenses",
+            "offset": 0,
+            "slot": "156",
+            "type": "t_uint256",
+            "contract": "PlayFiLicenseSale",
+            "src": "contracts/PlayFiLicenseSale.sol:64"
+          },
+          {
+            "label": "teamClaimsPerAddress",
+            "offset": 0,
+            "slot": "157",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "PlayFiLicenseSale",
+            "src": "contracts/PlayFiLicenseSale.sol:66"
+          },
+          {
+            "label": "friendsFamilyClaimsPerAddress",
+            "offset": 0,
+            "slot": "158",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "PlayFiLicenseSale",
+            "src": "contracts/PlayFiLicenseSale.sol:67"
+          },
+          {
+            "label": "earlyAccessClaimsPerAddress",
+            "offset": 0,
+            "slot": "159",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "PlayFiLicenseSale",
+            "src": "contracts/PlayFiLicenseSale.sol:68"
+          },
+          {
+            "label": "partnerClaimsPerAddress",
+            "offset": 0,
+            "slot": "160",
+            "type": "t_mapping(t_string_memory_ptr,t_mapping(t_address,t_uint256))",
+            "contract": "PlayFiLicenseSale",
+            "src": "contracts/PlayFiLicenseSale.sol:69"
+          },
+          {
+            "label": "publicClaimsPerAddress",
+            "offset": 0,
+            "slot": "161",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "PlayFiLicenseSale",
+            "src": "contracts/PlayFiLicenseSale.sol:70"
+          },
+          {
+            "label": "publicWhitelistClaimsPerAddressAndReferral",
+            "offset": 0,
+            "slot": "162",
+            "type": "t_mapping(t_address,t_mapping(t_string_memory_ptr,t_uint256))",
+            "contract": "PlayFiLicenseSale",
+            "src": "contracts/PlayFiLicenseSale.sol:71"
+          },
+          {
+            "label": "tiers",
+            "offset": 0,
+            "slot": "163",
+            "type": "t_mapping(t_uint256,t_struct(Tier)8015_storage)",
+            "contract": "PlayFiLicenseSale",
+            "src": "contracts/PlayFiLicenseSale.sol:73"
+          },
+          {
+            "label": "whitelistTiers",
+            "offset": 0,
+            "slot": "164",
+            "type": "t_mapping(t_uint256,t_struct(Tier)8015_storage)",
+            "contract": "PlayFiLicenseSale",
+            "src": "contracts/PlayFiLicenseSale.sol:74"
+          },
+          {
+            "label": "partnerTiers",
+            "offset": 0,
+            "slot": "165",
+            "type": "t_mapping(t_string_memory_ptr,t_mapping(t_uint256,t_struct(Tier)8015_storage))",
+            "contract": "PlayFiLicenseSale",
+            "src": "contracts/PlayFiLicenseSale.sol:75"
+          },
+          {
+            "label": "referrals",
+            "offset": 0,
+            "slot": "166",
+            "type": "t_mapping(t_string_memory_ptr,t_struct(Referral)8020_storage)",
+            "contract": "PlayFiLicenseSale",
+            "src": "contracts/PlayFiLicenseSale.sol:76"
+          },
+          {
+            "label": "receiverToReferralCode",
+            "offset": 0,
+            "slot": "167",
+            "type": "t_mapping(t_address,t_string_storage)",
+            "contract": "PlayFiLicenseSale",
+            "src": "contracts/PlayFiLicenseSale.sol:77"
+          },
+          {
+            "label": "claimsPerTierPerAddress",
+            "offset": 0,
+            "slot": "168",
+            "type": "t_mapping(t_uint256,t_mapping(t_address,t_uint256))",
+            "contract": "PlayFiLicenseSale",
+            "src": "contracts/PlayFiLicenseSale.sol:78"
+          },
+          {
+            "label": "partnerClaimsPerTierPerAddress",
+            "offset": 0,
+            "slot": "169",
+            "type": "t_mapping(t_string_memory_ptr,t_mapping(t_uint256,t_mapping(t_address,t_uint256)))",
+            "contract": "PlayFiLicenseSale",
+            "src": "contracts/PlayFiLicenseSale.sol:79"
+          },
+          {
+            "label": "partnerSaleActive",
+            "offset": 0,
+            "slot": "170",
+            "type": "t_mapping(t_string_memory_ptr,t_bool)",
+            "contract": "PlayFiLicenseSale",
+            "src": "contracts/PlayFiLicenseSale.sol:80"
+          },
+          {
+            "label": "partnerReceiverAddress",
+            "offset": 0,
+            "slot": "171",
+            "type": "t_mapping(t_string_memory_ptr,t_address)",
+            "contract": "PlayFiLicenseSale",
+            "src": "contracts/PlayFiLicenseSale.sol:81"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_mapping(t_string_memory_ptr,t_uint256))": {
+            "label": "mapping(address => mapping(string => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_string_storage)": {
+            "label": "mapping(address => string)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)23_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_string_memory_ptr,t_address)": {
+            "label": "mapping(string => address)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_string_memory_ptr,t_bool)": {
+            "label": "mapping(string => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_string_memory_ptr,t_mapping(t_address,t_uint256))": {
+            "label": "mapping(string => mapping(address => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_string_memory_ptr,t_mapping(t_uint256,t_mapping(t_address,t_uint256)))": {
+            "label": "mapping(string => mapping(uint256 => mapping(address => uint256)))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_string_memory_ptr,t_mapping(t_uint256,t_struct(Tier)8015_storage))": {
+            "label": "mapping(string => mapping(uint256 => struct IPlayFiLicenseSale.Tier))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_string_memory_ptr,t_struct(Referral)8020_storage)": {
+            "label": "mapping(string => struct IPlayFiLicenseSale.Referral)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_string_memory_ptr,t_uint256)": {
+            "label": "mapping(string => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_address,t_uint256))": {
+            "label": "mapping(uint256 => mapping(address => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Tier)8015_storage)": {
+            "label": "mapping(uint256 => struct IPlayFiLicenseSale.Tier)",
+            "numberOfBytes": "32"
+          },
+          "t_string_memory_ptr": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Referral)8020_storage": {
+            "label": "struct IPlayFiLicenseSale.Referral",
+            "members": [
+              {
+                "label": "totalClaims",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "receiver",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_struct(RoleData)23_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "members",
+                "type": "t_mapping(t_address,t_bool)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_struct(Tier)8015_storage": {
+            "label": "struct IPlayFiLicenseSale.Tier",
+            "members": [
+              {
+                "label": "price",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "individualCap",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "totalClaimed",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "totalCap",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "128"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
           }
         },
         "namespaces": {}
