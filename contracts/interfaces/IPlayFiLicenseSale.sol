@@ -62,6 +62,7 @@ interface IPlayFiLicenseSale
     event EarlyAccessSaleStatusSet(bool status);
     event PartnerSaleStatusSet(bool status, string partnerCode);
     event PublicSaleStatusSet(bool status);
+    event PublicWhitelistSaleStatusSet(bool status);
     event ProceedsWithdrawn(address indexed receiver, uint256 amount);
     event TierSet(uint256 indexed tierId, uint256 price, uint256 individualCap, uint256 totalClaimed, uint256 totalCap);
     event WhitelistTierSet(uint256 indexed tierId, uint256 price, uint256 individualCap, uint256 totalClaimed, uint256 totalCap);
@@ -88,6 +89,7 @@ interface IPlayFiLicenseSale
     error InvalidCommission();
     error ReferralCodeInUse();
     error InvalidCode();
+    error PartnerReceiverAddressNotSet();
 
     function claimLicenseTeam(uint256 amount, bytes calldata data, bytes32[] calldata merkleProof) external;
 
@@ -158,6 +160,8 @@ interface IPlayFiLicenseSale
     function partnerSaleActive(string calldata) external view returns (bool);
 
     function publicSaleActive() external view returns (bool);
+
+    function publicWhitelistSaleActive() external view returns (bool);
 
     function totalLicenses() external view returns (uint256);
 

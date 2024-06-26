@@ -378,8 +378,7 @@ describe("PlayFiLicenseSale", () => {
           const startAmount = ethers.parseEther("1000000000000");
           await impersonate(admin, provider);
           await admin.PlayFiLicenseSale.setPartnerTiers(["MULTIVERSE"],[1],[ethers.parseEther("0.01")],[2],[4]);
-          await impersonate(referralManager, provider);
-          await referralManager.PlayFiLicenseSale.setPartnerReceiverAddress("MULTIVERSE",users[11].address);
+          await admin.PlayFiLicenseSale.setPartnerReceiverAddress("MULTIVERSE",users[11].address);
           await impersonate(guardian, provider);
           await guardian.PlayFiLicenseSale.setPartnerSale("MULTIVERSE", true);
 
@@ -387,7 +386,7 @@ describe("PlayFiLicenseSale", () => {
           const toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForPartnerReferral(2,1,"MULTIVERSE","")).toPay;
           await impersonate(users[10], provider);
           await expect(users[10].PlayFiLicenseSale.claimLicensePartner(2,1,"MULTIVERSE","",{value: toPay})).to.emit(contracts.PlayFiLicenseSale,"PartnerLicensesClaimed").withArgs(users[10].address,2,1,toPay,"MULTIVERSE","");
-          expect(await ethers.provider.getBalance(contracts.PlayFiLicenseSale.getAddress())).to.be.equal(ethers.parseEther("0.018"));
+          expect(await ethers.provider.getBalance(contracts.PlayFiLicenseSale.getAddress())).to.be.equal(ethers.parseEther("0.016"));
           expect(await ethers.provider.getBalance(users[11].address)).to.be.equal(startAmount + ethers.parseEther("0.002"));
           expect(await contracts.PlayFiLicenseSale.partnerClaimsPerAddress("MULTIVERSE",users[10].address)).to.be.equal(2);
       });
@@ -428,60 +427,76 @@ describe("PlayFiLicenseSale", () => {
           await guardian.PlayFiLicenseSale.setPartnerSale("POLYGON",true);
           const startAmount =  await ethers.provider.getBalance(users[11].address);
 
-          // first 25 claims
-          let toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForPartnerReferral(25,1,"POLYGON","REFERRAL")).toPay;
+          // first 20 claims
+          let toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForPartnerReferral(20,1,"POLYGON","REFERRAL")).toPay;
           await impersonate(users[10], provider);
-          await expect(users[10].PlayFiLicenseSale.claimLicensePartner(25,1,"POLYGON","REFERRAL",{value: toPay})).to.emit(contracts.PlayFiLicenseSale,"PartnerLicensesClaimed").withArgs(users[10].address,25,1,toPay,"POLYGON","REFERRAL");
-          expect(await ethers.provider.getBalance(contracts.PlayFiLicenseSale.getAddress())).to.be.equal(ethers.parseEther("0.2"));
-          expect(await ethers.provider.getBalance(users[11].address)).to.be.equal(startAmount + ethers.parseEther("0.025"));
-          expect(await contracts.PlayFiLicenseSale.partnerClaimsPerAddress("POLYGON",users[10].address)).to.be.equal(25);
+          await expect(users[10].PlayFiLicenseSale.claimLicensePartner(20,1,"POLYGON","REFERRAL",{value: toPay})).to.emit(contracts.PlayFiLicenseSale,"PartnerLicensesClaimed").withArgs(users[10].address,20,1,toPay,"POLYGON","REFERRAL");
+          expect(await ethers.provider.getBalance(contracts.PlayFiLicenseSale.getAddress())).to.be.equal(ethers.parseEther("0.16"));
+          expect(await ethers.provider.getBalance(users[11].address)).to.be.equal(startAmount + ethers.parseEther("0.02"));
+          expect(await contracts.PlayFiLicenseSale.partnerClaimsPerAddress("POLYGON",users[10].address)).to.be.equal(20);
           let tier1 = await contracts.PlayFiLicenseSale.partnerTiers("POLYGON",1);
           expect(tier1[0]).to.be.equal(ethers.parseEther("0.01"));
           expect(tier1[1]).to.be.equal(1000);
-          expect(tier1[2]).to.be.equal(25);
+          expect(tier1[2]).to.be.equal(20);
           expect(tier1[3]).to.be.equal(4000);
-          expect(await contracts.PlayFiLicenseSale.totalLicenses()).to.be.equal(25);
+          expect(await contracts.PlayFiLicenseSale.totalLicenses()).to.be.equal(20);
           let referral = await contracts.PlayFiLicenseSale.referrals("REFERRAL");
-          expect(referral[0]).to.be.equal(25);
+          expect(referral[0]).to.be.equal(20);
           expect(referral[1]).to.be.equal(users[11].address);
 
-          // 50 claims
-          toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForPartnerReferral(25,1,"POLYGON","REFERRAL")).toPay;
-          await expect(users[10].PlayFiLicenseSale.claimLicensePartner(25,1,"POLYGON","REFERRAL",{value: toPay})).to.emit(contracts.PlayFiLicenseSale,"PartnerLicensesClaimed").withArgs(users[10].address,25,1,toPay,"POLYGON","REFERRAL");
-          expect(await ethers.provider.getBalance(contracts.PlayFiLicenseSale.getAddress())).to.be.equal(ethers.parseEther("0.39375"));
-          expect(await ethers.provider.getBalance(users[11].address)).to.be.equal(startAmount + ethers.parseEther("0.05625"));
-          expect(await contracts.PlayFiLicenseSale.partnerClaimsPerAddress("POLYGON",users[10].address)).to.be.equal(50);
+          // 40 claims
+          toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForPartnerReferral(20,1,"POLYGON","REFERRAL")).toPay;
+          await expect(users[10].PlayFiLicenseSale.claimLicensePartner(20,1,"POLYGON","REFERRAL",{value: toPay})).to.emit(contracts.PlayFiLicenseSale,"PartnerLicensesClaimed").withArgs(users[10].address,20,1,toPay,"POLYGON","REFERRAL");
+          expect(await ethers.provider.getBalance(contracts.PlayFiLicenseSale.getAddress())).to.be.equal(ethers.parseEther("0.316"));
+          expect(await ethers.provider.getBalance(users[11].address)).to.be.equal(startAmount + ethers.parseEther("0.042"));
+          expect(await contracts.PlayFiLicenseSale.partnerClaimsPerAddress("POLYGON",users[10].address)).to.be.equal(40);
           tier1 = await contracts.PlayFiLicenseSale.partnerTiers("POLYGON",1);
           expect(tier1[0]).to.be.equal(ethers.parseEther("0.01"));
           expect(tier1[1]).to.be.equal(1000);
-          expect(tier1[2]).to.be.equal(50);
+          expect(tier1[2]).to.be.equal(40);
           expect(tier1[3]).to.be.equal(4000);
-          expect(await contracts.PlayFiLicenseSale.totalLicenses()).to.be.equal(50);
+          expect(await contracts.PlayFiLicenseSale.totalLicenses()).to.be.equal(40);
           referral = await contracts.PlayFiLicenseSale.referrals("REFERRAL");
-          expect(referral[0]).to.be.equal(50);
+          expect(referral[0]).to.be.equal(40);
           expect(referral[1]).to.be.equal(users[11].address);
 
-          // 75 claims
-          toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForPartnerReferral(25,1,"POLYGON","REFERRAL")).toPay;
-          await expect(users[10].PlayFiLicenseSale.claimLicensePartner(25,1,"POLYGON","REFERRAL",{value: toPay})).to.emit(contracts.PlayFiLicenseSale,"PartnerLicensesClaimed").withArgs(users[10].address,25,1,toPay,"POLYGON","REFERRAL");
-          expect(await ethers.provider.getBalance(contracts.PlayFiLicenseSale.getAddress())).to.be.equal(ethers.parseEther("0.58125"));
-          expect(await ethers.provider.getBalance(users[11].address)).to.be.equal(startAmount + ethers.parseEther("0.09375"));
-          expect(await contracts.PlayFiLicenseSale.partnerClaimsPerAddress("POLYGON",users[10].address)).to.be.equal(75);
+          // 60 claims
+          toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForPartnerReferral(20,1,"POLYGON","REFERRAL")).toPay;
+          await expect(users[10].PlayFiLicenseSale.claimLicensePartner(20,1,"POLYGON","REFERRAL",{value: toPay})).to.emit(contracts.PlayFiLicenseSale,"PartnerLicensesClaimed").withArgs(users[10].address,20,1,toPay,"POLYGON","REFERRAL");
+          expect(await ethers.provider.getBalance(contracts.PlayFiLicenseSale.getAddress())).to.be.equal(ethers.parseEther("0.468"));
+          expect(await ethers.provider.getBalance(users[11].address)).to.be.equal(startAmount + ethers.parseEther("0.066"));
+          expect(await contracts.PlayFiLicenseSale.partnerClaimsPerAddress("POLYGON",users[10].address)).to.be.equal(60);
           tier1 = await contracts.PlayFiLicenseSale.partnerTiers("POLYGON",1);
           expect(tier1[0]).to.be.equal(ethers.parseEther("0.01"));
           expect(tier1[1]).to.be.equal(1000);
-          expect(tier1[2]).to.be.equal(75);
+          expect(tier1[2]).to.be.equal(60);
           expect(tier1[3]).to.be.equal(4000);
-          expect(await contracts.PlayFiLicenseSale.totalLicenses()).to.be.equal(75);
+          expect(await contracts.PlayFiLicenseSale.totalLicenses()).to.be.equal(60);
           referral = await contracts.PlayFiLicenseSale.referrals("REFERRAL");
-          expect(referral[0]).to.be.equal(75);
+          expect(referral[0]).to.be.equal(60);
+          expect(referral[1]).to.be.equal(users[11].address);
+
+          // 80 claims
+          toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForPartnerReferral(20,1,"POLYGON","REFERRAL")).toPay;
+          await expect(users[10].PlayFiLicenseSale.claimLicensePartner(20,1,"POLYGON","REFERRAL",{value: toPay})).to.emit(contracts.PlayFiLicenseSale,"PartnerLicensesClaimed").withArgs(users[10].address,20,1,toPay,"POLYGON","REFERRAL");
+          expect(await ethers.provider.getBalance(contracts.PlayFiLicenseSale.getAddress())).to.be.equal(ethers.parseEther("0.616"));
+          expect(await ethers.provider.getBalance(users[11].address)).to.be.equal(startAmount + ethers.parseEther("0.092"));
+          expect(await contracts.PlayFiLicenseSale.partnerClaimsPerAddress("POLYGON",users[10].address)).to.be.equal(80);
+          tier1 = await contracts.PlayFiLicenseSale.partnerTiers("POLYGON",1);
+          expect(tier1[0]).to.be.equal(ethers.parseEther("0.01"));
+          expect(tier1[1]).to.be.equal(1000);
+          expect(tier1[2]).to.be.equal(80);
+          expect(tier1[3]).to.be.equal(4000);
+          expect(await contracts.PlayFiLicenseSale.totalLicenses()).to.be.equal(80);
+          referral = await contracts.PlayFiLicenseSale.referrals("REFERRAL");
+          expect(referral[0]).to.be.equal(80);
           expect(referral[1]).to.be.equal(users[11].address);
 
           // 100 claims
-          toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForPartnerReferral(25,1,"POLYGON","REFERRAL")).toPay;
-          await expect(users[10].PlayFiLicenseSale.claimLicensePartner(25,1,"POLYGON","REFERRAL",{value: toPay})).to.emit(contracts.PlayFiLicenseSale,"PartnerLicensesClaimed").withArgs(users[10].address,25,1,toPay,"POLYGON","REFERRAL");
-          expect(await ethers.provider.getBalance(contracts.PlayFiLicenseSale.getAddress())).to.be.equal(ethers.parseEther("0.7625"));
-          expect(await ethers.provider.getBalance(users[11].address)).to.be.equal(startAmount + ethers.parseEther("0.1375"));
+          toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForPartnerReferral(20,1,"POLYGON","REFERRAL")).toPay;
+          await expect(users[10].PlayFiLicenseSale.claimLicensePartner(20,1,"POLYGON","REFERRAL",{value: toPay})).to.emit(contracts.PlayFiLicenseSale,"PartnerLicensesClaimed").withArgs(users[10].address,20,1,toPay,"POLYGON","REFERRAL");
+          expect(await ethers.provider.getBalance(contracts.PlayFiLicenseSale.getAddress())).to.be.equal(ethers.parseEther("0.76"));
+          expect(await ethers.provider.getBalance(users[11].address)).to.be.equal(startAmount + ethers.parseEther("0.12"));
           expect(await contracts.PlayFiLicenseSale.partnerClaimsPerAddress("POLYGON",users[10].address)).to.be.equal(100);
           tier1 = await contracts.PlayFiLicenseSale.partnerTiers("POLYGON",1);
           expect(tier1[0]).to.be.equal(ethers.parseEther("0.01"));
@@ -493,52 +508,20 @@ describe("PlayFiLicenseSale", () => {
           expect(referral[0]).to.be.equal(100);
           expect(referral[1]).to.be.equal(users[11].address);
 
-          // 150 claims
-          toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForPartnerReferral(50,1,"POLYGON","REFERRAL")).toPay;
-          await expect(users[10].PlayFiLicenseSale.claimLicensePartner(50,1,"POLYGON","REFERRAL",{value: toPay})).to.emit(contracts.PlayFiLicenseSale,"PartnerLicensesClaimed").withArgs(users[10].address,50,1,toPay,"POLYGON","REFERRAL");
-          expect(await ethers.provider.getBalance(contracts.PlayFiLicenseSale.getAddress())).to.be.equal(ethers.parseEther("1.1125"));
-          expect(await ethers.provider.getBalance(users[11].address)).to.be.equal(startAmount + ethers.parseEther("0.2375"));
-          expect(await contracts.PlayFiLicenseSale.partnerClaimsPerAddress("POLYGON",users[10].address)).to.be.equal(150);
-          tier1 = await contracts.PlayFiLicenseSale.partnerTiers("POLYGON",1);
-          expect(tier1[0]).to.be.equal(ethers.parseEther("0.01"));
-          expect(tier1[1]).to.be.equal(1000);
-          expect(tier1[2]).to.be.equal(150);
-          expect(tier1[3]).to.be.equal(4000);
-          expect(await contracts.PlayFiLicenseSale.totalLicenses()).to.be.equal(150);
-          referral = await contracts.PlayFiLicenseSale.referrals("REFERRAL");
-          expect(referral[0]).to.be.equal(150);
-          expect(referral[1]).to.be.equal(users[11].address);
-
-          // 200 claims
-          toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForPartnerReferral(50,1,"POLYGON","REFERRAL")).toPay;
-          await expect(users[10].PlayFiLicenseSale.claimLicensePartner(50,1,"POLYGON","REFERRAL",{value: toPay})).to.emit(contracts.PlayFiLicenseSale,"PartnerLicensesClaimed").withArgs(users[10].address,50,1,toPay,"POLYGON","REFERRAL");
-          expect(await ethers.provider.getBalance(contracts.PlayFiLicenseSale.getAddress())).to.be.equal(ethers.parseEther("1.45"));
-          expect(await ethers.provider.getBalance(users[11].address)).to.be.equal(startAmount + ethers.parseEther("0.35"));
-          expect(await contracts.PlayFiLicenseSale.partnerClaimsPerAddress("POLYGON",users[10].address)).to.be.equal(200);
-          tier1 = await contracts.PlayFiLicenseSale.partnerTiers("POLYGON",1);
-          expect(tier1[0]).to.be.equal(ethers.parseEther("0.01"));
-          expect(tier1[1]).to.be.equal(1000);
-          expect(tier1[2]).to.be.equal(200);
-          expect(tier1[3]).to.be.equal(4000);
-          expect(await contracts.PlayFiLicenseSale.totalLicenses()).to.be.equal(200);
-          referral = await contracts.PlayFiLicenseSale.referrals("REFERRAL");
-          expect(referral[0]).to.be.equal(200);
-          expect(referral[1]).to.be.equal(users[11].address);
-
-          // 200+ claims
+          // 100+ claims
           toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForPartnerReferral(1,1,"POLYGON","REFERRAL")).toPay;
           await expect(users[10].PlayFiLicenseSale.claimLicensePartner(1,1,"POLYGON","REFERRAL",{value: toPay})).to.emit(contracts.PlayFiLicenseSale,"PartnerLicensesClaimed").withArgs(users[10].address,1,1,toPay,"POLYGON","REFERRAL");
-          expect(await ethers.provider.getBalance(contracts.PlayFiLicenseSale.getAddress())).to.be.equal(ethers.parseEther("1.4565"));
-          expect(await ethers.provider.getBalance(users[11].address)).to.be.equal(startAmount + ethers.parseEther("0.3525"));
-          expect(await contracts.PlayFiLicenseSale.partnerClaimsPerAddress("POLYGON",users[10].address)).to.be.equal(201);
+          expect(await ethers.provider.getBalance(contracts.PlayFiLicenseSale.getAddress())).to.be.equal(ethers.parseEther("0.767"));
+          expect(await ethers.provider.getBalance(users[11].address)).to.be.equal(startAmount + ethers.parseEther("0.1215"));
+          expect(await contracts.PlayFiLicenseSale.partnerClaimsPerAddress("POLYGON",users[10].address)).to.be.equal(101);
           tier1 = await contracts.PlayFiLicenseSale.partnerTiers("POLYGON",1);
           expect(tier1[0]).to.be.equal(ethers.parseEther("0.01"));
           expect(tier1[1]).to.be.equal(1000);
-          expect(tier1[2]).to.be.equal(201);
+          expect(tier1[2]).to.be.equal(101);
           expect(tier1[3]).to.be.equal(4000);
-          expect(await contracts.PlayFiLicenseSale.totalLicenses()).to.be.equal(201);
+          expect(await contracts.PlayFiLicenseSale.totalLicenses()).to.be.equal(101);
           referral = await contracts.PlayFiLicenseSale.referrals("REFERRAL");
-          expect(referral[0]).to.be.equal(201);
+          expect(referral[0]).to.be.equal(101);
           expect(referral[1]).to.be.equal(users[11].address);
       });
 
@@ -787,53 +770,45 @@ describe("PlayFiLicenseSale", () => {
 
           // Test dynamic pricing
 
-          // After first 25
-          let toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForReferral(24,1,"REFERRAL",false)).toPay;
-          await users[10].PlayFiLicenseSale.claimLicensePublic(24,1,"REFERRAL",{value: toPay});
+          // After first 20
+          let toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForReferral(19,1,"REFERRAL",false)).toPay;
+          await users[10].PlayFiLicenseSale.claimLicensePublic(19,1,"REFERRAL",{value: toPay});
           let paymentDetails = await contracts.PlayFiLicenseSale.paymentDetailsForReferral(1,1,"REFERRAL",false);
-          expect(paymentDetails[0]).to.be.equal(ethers.parseEther("0.009"));
-          expect(paymentDetails[1]).to.be.equal(ethers.parseEther("0.00125"));
-          expect(paymentDetails[2]).to.be.equal(ethers.parseEther("0.001"));
+          expect(paymentDetails[0]).to.be.equal(ethers.parseEther("0.0089"));
+          expect(paymentDetails[1]).to.be.equal(ethers.parseEther("0.0011"));
+          expect(paymentDetails[2]).to.be.equal(ethers.parseEther("0.0011"));
 
-          // After first 50
-          toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForReferral(25,1,"REFERRAL",true)).toPay;
-          await users[10].PlayFiLicenseSale.claimLicensePublicWhitelist(25,1,data,proof,{value: toPay});
+          // After first 40
+          toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForReferral(20,1,"REFERRAL",true)).toPay;
+          await users[10].PlayFiLicenseSale.claimLicensePublicWhitelist(20,1,data,proof,{value: toPay});
           paymentDetails = await contracts.PlayFiLicenseSale.paymentDetailsForReferral(1,1,"REFERRAL",true);
-          expect(paymentDetails[0]).to.be.equal(ethers.parseEther("0.018"));
-          expect(paymentDetails[1]).to.be.equal(ethers.parseEther("0.003"));
-          expect(paymentDetails[2]).to.be.equal(ethers.parseEther("0.002"));
+          expect(paymentDetails[0]).to.be.equal(ethers.parseEther("0.0176"));
+          expect(paymentDetails[1]).to.be.equal(ethers.parseEther("0.0024"));
+          expect(paymentDetails[2]).to.be.equal(ethers.parseEther("0.0024"));
 
-          // After first 75
-          toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForReferral(25,1,"REFERRAL",false)).toPay;
-          await users[10].PlayFiLicenseSale.claimLicensePublic(25,1,"REFERRAL",{value: toPay});
+          // After first 60
+          toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForReferral(20,1,"REFERRAL",false)).toPay;
+          await users[10].PlayFiLicenseSale.claimLicensePublic(20,1,"REFERRAL",{value: toPay});
           paymentDetails = await contracts.PlayFiLicenseSale.paymentDetailsForReferral(1,1,"REFERRAL",false);
-          expect(paymentDetails[0]).to.be.equal(ethers.parseEther("0.009"));
-          expect(paymentDetails[1]).to.be.equal(ethers.parseEther("0.00175"));
-          expect(paymentDetails[2]).to.be.equal(ethers.parseEther("0.001"));
+          expect(paymentDetails[0]).to.be.equal(ethers.parseEther("0.0087"));
+          expect(paymentDetails[1]).to.be.equal(ethers.parseEther("0.0013"));
+          expect(paymentDetails[2]).to.be.equal(ethers.parseEther("0.0013"));
+
+          // After first 80
+          toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForReferral(20,1,"REFERRAL",true)).toPay;
+          await users[10].PlayFiLicenseSale.claimLicensePublicWhitelist(20,1,data,proof,{value: toPay});
+          paymentDetails = await contracts.PlayFiLicenseSale.paymentDetailsForReferral(1,1,"REFERRAL",true);
+          expect(paymentDetails[0]).to.be.equal(ethers.parseEther("0.0172"));
+          expect(paymentDetails[1]).to.be.equal(ethers.parseEther("0.0028"));
+          expect(paymentDetails[2]).to.be.equal(ethers.parseEther("0.0028"));
 
           // After first 100
-          toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForReferral(25,1,"REFERRAL",true)).toPay;
-          await users[10].PlayFiLicenseSale.claimLicensePublicWhitelist(25,1,data,proof,{value: toPay});
-          paymentDetails = await contracts.PlayFiLicenseSale.paymentDetailsForReferral(1,1,"REFERRAL",true);
-          expect(paymentDetails[0]).to.be.equal(ethers.parseEther("0.018"));
-          expect(paymentDetails[1]).to.be.equal(ethers.parseEther("0.004"));
-          expect(paymentDetails[2]).to.be.equal(ethers.parseEther("0.002"));
-
-          // After first 150
-          toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForReferral(50,1,"REFERRAL",false)).toPay;
-          await users[10].PlayFiLicenseSale.claimLicensePublic(50,1,"REFERRAL",{value: toPay});
+          toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForReferral(20,1,"REFERRAL",false)).toPay;
+          await users[10].PlayFiLicenseSale.claimLicensePublic(20,1,"REFERRAL",{value: toPay});
           paymentDetails = await contracts.PlayFiLicenseSale.paymentDetailsForReferral(1,1,"REFERRAL",false);
-          expect(paymentDetails[0]).to.be.equal(ethers.parseEther("0.009"));
-          expect(paymentDetails[1]).to.be.equal(ethers.parseEther("0.00225"));
-          expect(paymentDetails[2]).to.be.equal(ethers.parseEther("0.001"));
-
-          // After first 200
-          toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForReferral(50,1,"REFERRAL",true)).toPay;
-          await users[10].PlayFiLicenseSale.claimLicensePublicWhitelist(50,1,data,proof,{value: toPay});
-          paymentDetails = await contracts.PlayFiLicenseSale.paymentDetailsForReferral(1,1,"REFERRAL",true);
-          expect(paymentDetails[0]).to.be.equal(ethers.parseEther("0.018"));
-          expect(paymentDetails[1]).to.be.equal(ethers.parseEther("0.005"));
-          expect(paymentDetails[2]).to.be.equal(ethers.parseEther("0.002"));
+          expect(paymentDetails[0]).to.be.equal(ethers.parseEther("0.0085"));
+          expect(paymentDetails[1]).to.be.equal(ethers.parseEther("0.0015"));
+          expect(paymentDetails[2]).to.be.equal(ethers.parseEther("0.0015"));
       });
 
       it("paymentDetailsForPartnerReferral returns the correct amount to pay, commission and discount in case of a valid referral is used", async function () {
@@ -855,53 +830,45 @@ describe("PlayFiLicenseSale", () => {
 
           // Test dynamic pricing
 
-          // After first 25
-          let toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForPartnerReferral(24,1,"POLYGON","REFERRAL")).toPay;
-          await users[10].PlayFiLicenseSale.claimLicensePartner(24,1,"POLYGON","REFERRAL",{value: toPay});
+          // After first 20
+          let toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForPartnerReferral(19,1,"POLYGON","REFERRAL")).toPay;
+          await users[10].PlayFiLicenseSale.claimLicensePartner(19,1,"POLYGON","REFERRAL",{value: toPay});
           let paymentDetails = await contracts.PlayFiLicenseSale.paymentDetailsForPartnerReferral(1,1,"POLYGON","REFERRAL");
-          expect(paymentDetails[0]).to.be.equal(ethers.parseEther("0.009"));
-          expect(paymentDetails[1]).to.be.equal(ethers.parseEther("0.00125"));
-          expect(paymentDetails[2]).to.be.equal(ethers.parseEther("0.001"));
+          expect(paymentDetails[0]).to.be.equal(ethers.parseEther("0.0089"));
+          expect(paymentDetails[1]).to.be.equal(ethers.parseEther("0.0011"));
+          expect(paymentDetails[2]).to.be.equal(ethers.parseEther("0.0011"));
 
-          // After first 50
-          toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForPartnerReferral(25,1,"POLYGON","REFERRAL")).toPay;
-          await users[10].PlayFiLicenseSale.claimLicensePartner(25,1,"POLYGON","REFERRAL",{value: toPay});
+          // After first 40
+          toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForPartnerReferral(20,1,"POLYGON","REFERRAL")).toPay;
+          await users[10].PlayFiLicenseSale.claimLicensePartner(20,1,"POLYGON","REFERRAL",{value: toPay});
           paymentDetails = await contracts.PlayFiLicenseSale.paymentDetailsForPartnerReferral(1,1,"POLYGON","REFERRAL");
-          expect(paymentDetails[0]).to.be.equal(ethers.parseEther("0.009"));
-          expect(paymentDetails[1]).to.be.equal(ethers.parseEther("0.0015"));
-          expect(paymentDetails[2]).to.be.equal(ethers.parseEther("0.001"));
+          expect(paymentDetails[0]).to.be.equal(ethers.parseEther("0.0088"));
+          expect(paymentDetails[1]).to.be.equal(ethers.parseEther("0.0012"));
+          expect(paymentDetails[2]).to.be.equal(ethers.parseEther("0.0012"));
 
-          // After first 75
-          toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForPartnerReferral(25,1,"POLYGON","REFERRAL")).toPay;
-          await users[10].PlayFiLicenseSale.claimLicensePartner(25,1,"POLYGON","REFERRAL",{value: toPay});
+          // After first 60
+          toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForPartnerReferral(20,1,"POLYGON","REFERRAL")).toPay;
+          await users[10].PlayFiLicenseSale.claimLicensePartner(20,1,"POLYGON","REFERRAL",{value: toPay});
           paymentDetails = await contracts.PlayFiLicenseSale.paymentDetailsForPartnerReferral(1,1,"POLYGON","REFERRAL");
-          expect(paymentDetails[0]).to.be.equal(ethers.parseEther("0.009"));
-          expect(paymentDetails[1]).to.be.equal(ethers.parseEther("0.00175"));
-          expect(paymentDetails[2]).to.be.equal(ethers.parseEther("0.001"));
+          expect(paymentDetails[0]).to.be.equal(ethers.parseEther("0.0087"));
+          expect(paymentDetails[1]).to.be.equal(ethers.parseEther("0.0013"));
+          expect(paymentDetails[2]).to.be.equal(ethers.parseEther("0.0013"));
+
+          // After first 80
+          toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForPartnerReferral(20,1,"POLYGON","REFERRAL")).toPay;
+          await users[10].PlayFiLicenseSale.claimLicensePartner(20,1,"POLYGON","REFERRAL",{value: toPay});
+          paymentDetails = await contracts.PlayFiLicenseSale.paymentDetailsForPartnerReferral(1,1,"POLYGON","REFERRAL");
+          expect(paymentDetails[0]).to.be.equal(ethers.parseEther("0.0086"));
+          expect(paymentDetails[1]).to.be.equal(ethers.parseEther("0.0014"));
+          expect(paymentDetails[2]).to.be.equal(ethers.parseEther("0.0014"));
 
           // After first 100
-          toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForPartnerReferral(25,1,"POLYGON","REFERRAL")).toPay;
-          await users[10].PlayFiLicenseSale.claimLicensePartner(25,1,"POLYGON","REFERRAL",{value: toPay});
+          toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForPartnerReferral(20,1,"POLYGON","REFERRAL")).toPay;
+          await users[10].PlayFiLicenseSale.claimLicensePartner(20,1,"POLYGON","REFERRAL",{value: toPay});
           paymentDetails = await contracts.PlayFiLicenseSale.paymentDetailsForPartnerReferral(1,1,"POLYGON","REFERRAL");
-          expect(paymentDetails[0]).to.be.equal(ethers.parseEther("0.009"));
-          expect(paymentDetails[1]).to.be.equal(ethers.parseEther("0.0020"));
-          expect(paymentDetails[2]).to.be.equal(ethers.parseEther("0.001"));
-
-          // After first 150
-          toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForPartnerReferral(50,1,"POLYGON","REFERRAL")).toPay;
-          await users[10].PlayFiLicenseSale.claimLicensePartner(50,1,"POLYGON","REFERRAL",{value: toPay});
-          paymentDetails = await contracts.PlayFiLicenseSale.paymentDetailsForPartnerReferral(1,1,"POLYGON","REFERRAL");
-          expect(paymentDetails[0]).to.be.equal(ethers.parseEther("0.009"));
-          expect(paymentDetails[1]).to.be.equal(ethers.parseEther("0.00225"));
-          expect(paymentDetails[2]).to.be.equal(ethers.parseEther("0.001"));
-
-          // After first 200
-          toPay = (await contracts.PlayFiLicenseSale.paymentDetailsForPartnerReferral(50,1,"POLYGON","REFERRAL")).toPay;
-          await users[10].PlayFiLicenseSale.claimLicensePartner(50,1,"POLYGON","REFERRAL",{value: toPay});
-          paymentDetails = await contracts.PlayFiLicenseSale.paymentDetailsForPartnerReferral(1,1,"POLYGON","REFERRAL");
-          expect(paymentDetails[0]).to.be.equal(ethers.parseEther("0.009"));
-          expect(paymentDetails[1]).to.be.equal(ethers.parseEther("0.0025"));
-          expect(paymentDetails[2]).to.be.equal(ethers.parseEther("0.001"));
+          expect(paymentDetails[0]).to.be.equal(ethers.parseEther("0.0085"));
+          expect(paymentDetails[1]).to.be.equal(ethers.parseEther("0.0015"));
+          expect(paymentDetails[2]).to.be.equal(ethers.parseEther("0.0015"));
       });
 
       it("getTier returns the tier details", async function () {
@@ -1283,9 +1250,9 @@ describe("PlayFiLicenseSale", () => {
 
       it("setPartnerReceiverAddress sets the receiver address of the partner", async function () {
           await impersonate(admin, provider);
-          expect(await contracts.PlayFiLicenseSale.partnerReceiverAddress("METAVERSE")).to.be.equal(ethers.ZeroAddress);
+          expect((await contracts.PlayFiLicenseSale.partnerReferrals("METAVERSE"))[1]).to.be.equal(ethers.ZeroAddress);
           await admin.PlayFiLicenseSale.setPartnerReceiverAddress("METAVERSE", users[10].address);
-          expect(await contracts.PlayFiLicenseSale.partnerReceiverAddress("METAVERSE")).to.be.equal(users[10].address);
+          expect((await contracts.PlayFiLicenseSale.partnerReferrals("METAVERSE"))[1]).to.be.equal(users[10].address);
       });
   });
 

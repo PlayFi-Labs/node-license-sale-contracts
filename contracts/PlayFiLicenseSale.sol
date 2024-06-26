@@ -60,6 +60,7 @@ IPlayFiLicenseSale
     bool public override friendsFamilySaleActive;
     bool public override earlyAccessSaleActive;
     bool public override publicSaleActive;
+    bool public override publicWhitelistSaleActive;
 
     uint256 public override totalLicenses;
 
@@ -78,7 +79,7 @@ IPlayFiLicenseSale
     mapping(uint256 => mapping(address => uint256)) public claimsPerTierPerAddress;
     mapping(string => mapping(uint256 => mapping(address => uint256))) public partnerClaimsPerTierPerAddress;
     mapping(string => bool) public partnerSaleActive;
-    mapping(string => address) public partnerReceiverAddress;
+    mapping(string => Referral) public partnerReferrals;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -175,11 +176,11 @@ IPlayFiLicenseSale
         if(partnerClaimsPerTierPerAddress[partnerCode][tier][msg.sender] + amount > partnerTiers[partnerCode][tier].individualCap) revert IndividualTierCapExceeded();
         (uint256 toPay, uint256 commission,) = paymentDetailsForPartnerReferral(amount, tier, partnerCode, referral);
         if(msg.value < toPay) revert InsufficientPayment();
-        if(partnerReceiverAddress[partnerCode] != address(0)) {
+        if(partnerReferrals[partnerCode].receiver != address(0)) {
             if(commission > 0) {
-                (bool sent, ) = payable(partnerReceiverAddress[partnerCode]).call{ value: commission }("");
+                (bool sent, ) = payable(partnerReferrals[partnerCode].receiver).call{ value: commission }("");
                 if (!sent) revert CommissionPayoutFailed();
-                emit CommissionPaid(partnerCode, partnerReceiverAddress[partnerCode], commission);
+                emit CommissionPaid(partnerCode, partnerReferrals[partnerCode].receiver, commission);
             }
         } else {
             if(commission > 0) {
@@ -189,6 +190,7 @@ IPlayFiLicenseSale
             }
             referrals[referral].totalClaims += amount;
         }
+        partnerReferrals[partnerCode].totalClaims += amount;
         partnerTiers[partnerCode][tier].totalClaimed += amount;
         partnerClaimsPerAddress[partnerCode][msg.sender] += amount;
         totalLicenses += amount;
@@ -265,23 +267,21 @@ IPlayFiLicenseSale
         }
         uint256 fullPrice = tierPrice * amount;
         if(referrals[referral].receiver != address(0)) {
-            discount = fullPrice * 10 / 100;
             uint256 totalClaims = referrals[referral].totalClaims;
-            if(totalClaims < 25) {
+            if(totalClaims < 20) {
                 commission = fullPrice * 10 / 100;
-            } else if (totalClaims < 50) {
-                commission = fullPrice * 125 / 1000;
-            } else if (totalClaims < 75) {
-                commission = fullPrice * 15 / 100;
+            } else if (totalClaims < 40) {
+                commission = fullPrice * 11 / 100;
+            } else if (totalClaims < 60) {
+                commission = fullPrice * 12 / 100;
+            } else if (totalClaims < 80) {
+                commission = fullPrice * 13 / 100;
             } else if (totalClaims < 100) {
-                commission = fullPrice * 175 / 1000;
-            } else if (totalClaims < 150) {
-                commission = fullPrice * 20 / 100;
-            } else if (totalClaims < 200) {
-                commission = fullPrice * 225 / 1000;
+                commission = fullPrice * 14 / 100;
             } else {
-                commission = fullPrice * 25 / 100;
+                commission = fullPrice * 15 / 100;
             }
+            discount = commission;
         }
         toPay = fullPrice - discount;
     }
@@ -296,28 +296,23 @@ IPlayFiLicenseSale
     function paymentDetailsForPartnerReferral(uint256 amount, uint256 tier, string memory partnerCode, string memory referral) public view returns (uint256 toPay, uint256 commission, uint256 discount) {
         uint256 tierPrice = partnerTiers[partnerCode][tier].price;
         uint256 fullPrice = tierPrice * amount;
-        if(partnerReceiverAddress[partnerCode] != address(0)) {
-            commission = fullPrice * 10 / 100;
-        } else {
-            if(referrals[referral].receiver != address(0)) {
-                discount = fullPrice * 10 / 100;
-                uint256 totalClaims = referrals[referral].totalClaims;
-                if(totalClaims < 25) {
-                    commission = fullPrice * 10 / 100;
-                } else if (totalClaims < 50) {
-                    commission = fullPrice * 125 / 1000;
-                } else if (totalClaims < 75) {
-                    commission = fullPrice * 15 / 100;
-                } else if (totalClaims < 100) {
-                    commission = fullPrice * 175 / 1000;
-                } else if (totalClaims < 150) {
-                    commission = fullPrice * 20 / 100;
-                } else if (totalClaims < 200) {
-                    commission = fullPrice * 225 / 1000;
-                } else {
-                    commission = fullPrice * 25 / 100;
-                }
+        bool isSmallPartner =  partnerReferrals[partnerCode].receiver != address(0) ? true : false;
+        if(isSmallPartner || referrals[referral].receiver != address(0)) {
+            uint256 totalClaims = isSmallPartner ? partnerReferrals[partnerCode].totalClaims : referrals[referral].totalClaims;
+            if(totalClaims < 20) {
+                commission = fullPrice * 10 / 100;
+            } else if (totalClaims < 40) {
+                commission = fullPrice * 11 / 100;
+            } else if (totalClaims < 60) {
+                commission = fullPrice * 12 / 100;
+            } else if (totalClaims < 80) {
+                commission = fullPrice * 13 / 100;
+            } else if (totalClaims < 100) {
+                commission = fullPrice * 14 / 100;
+            } else {
+                commission = fullPrice * 15 / 100;
             }
+            discount = commission;
         }
         toPay = fullPrice - discount;
     }
@@ -475,7 +470,7 @@ IPlayFiLicenseSale
     /// @param partnerCode The code of the partner sale to set the status from
     /// @param receiver The receiver address of the partner
     function setPartnerReceiverAddress(string memory partnerCode, address receiver) public onlyAdmin {
-        partnerReceiverAddress[partnerCode] = receiver;
+        partnerReferrals[partnerCode].receiver = receiver;
         emit PartnerReceiverAddressSet(partnerCode, receiver);
     }
 
@@ -484,6 +479,13 @@ IPlayFiLicenseSale
     function setPublicSale(bool status) public onlyGuardian {
         publicSaleActive = status;
         emit PublicSaleStatusSet(status);
+    }
+
+    /// @notice Sets the public whitelist sale status
+    /// @param status The status to set for the public whitelist sale
+    function setPublicWhitelistSale(bool status) public onlyGuardian {
+        publicWhitelistSaleActive = status;
+        emit PublicWhitelistSaleStatusSet(status);
     }
 
     /// @notice Withdraws the sale proceeds
