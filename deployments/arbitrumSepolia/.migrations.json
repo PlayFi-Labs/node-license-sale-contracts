@@ -1,4 +1,6 @@
 {
   "DeployPlayFiLicenseSaleEVM": 1719427847,
-  "DeployPreOrderLicenseClaimerEVM": 1719427972
+  "DeployPreOrderLicenseClaimerEVM": 1719427972,
+  "UpgradePreOrderLicenseClaimerEVM": 1719434264,
+  "UpgradePlayFiLicenseSaleEVM": 1719434435
 }

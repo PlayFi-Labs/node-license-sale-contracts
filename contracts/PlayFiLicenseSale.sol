@@ -227,7 +227,7 @@ IPlayFiLicenseSale
     /// @param data Index, claimCap and referral in encoded format
     /// @param merkleProof The proof used to verify weather the caller is allowed to claim the licenses
     function claimLicensePublicWhitelist(uint256 amount, uint256 tier, bytes calldata data, bytes32[] calldata merkleProof) public payable {
-        if(!publicSaleActive) revert PublicSaleNotActive();
+        if(!publicWhitelistSaleActive) revert PublicWhitelistSaleNotActive();
         (uint256 index, uint256 claimCap, string memory referral) = abi.decode(data,(uint256,uint256,string));
         if(whitelistTiers[tier].totalClaimed + amount > whitelistTiers[tier].totalCap) revert TotalTierCapExceeded();
         uint256 claimedLicenses = publicWhitelistClaimsPerAddressAndReferral[msg.sender][referral];

@@ -561,13 +561,13 @@ describe("PlayFiLicenseSale", () => {
           expect(await contracts.PlayFiLicenseSale.totalLicenses()).to.be.equal(2);
       });
 
-      it("Claiming a public whitelist license cannot be done when the public sale is not active", async function () {
-          await expect(users[10].PlayFiLicenseSale.claimLicensePublicWhitelist(1,1,"0x",[])).to.be.revertedWithCustomError(contracts.PlayFiLicenseSale,"PublicSaleNotActive");
+      it("Claiming a public whitelist license cannot be done when the public whitelist sale is not active", async function () {
+          await expect(users[10].PlayFiLicenseSale.claimLicensePublicWhitelist(1,1,"0x",[])).to.be.revertedWithCustomError(contracts.PlayFiLicenseSale,"PublicWhitelistSaleNotActive");
       });
 
       it("Claiming a public whitelist license cannot be done when the total whitelist tier cap is exceeded", async function () {
           await admin.PlayFiLicenseSale.setWhitelistTiers([1],[ethers.parseEther("0.01")],[1],[1]);
-          await guardian.PlayFiLicenseSale.setPublicSale(true);
+          await guardian.PlayFiLicenseSale.setPublicWhitelistSale(true);
           let tree = new PublicClaimsTree([
               {account: users[10].address, claimCap: BigInt("2"), referral: ""},
               {account: users[9].address, claimCap: BigInt("2"), referral: ""}
@@ -581,7 +581,7 @@ describe("PlayFiLicenseSale", () => {
 
       it("Claiming a public whitelist license cannot be done when the individual claim cap is exceeded", async function () {
           await admin.PlayFiLicenseSale.setWhitelistTiers([1],[ethers.parseEther("0.01")],[1000],[2]);
-          await guardian.PlayFiLicenseSale.setPublicSale(true);
+          await guardian.PlayFiLicenseSale.setPublicWhitelistSale(true);
           let tree = new PublicClaimsTree([
               {account: users[10].address, claimCap: BigInt("1"), referral: ""},
               {account: users[9].address, claimCap: BigInt("1"), referral: ""}
@@ -595,7 +595,7 @@ describe("PlayFiLicenseSale", () => {
 
       it("Claiming public whitelist licenses cannot be done if the payment is insufficient", async function () {
           await admin.PlayFiLicenseSale.setWhitelistTiers([1],[ethers.parseEther("0.01")],[2],[2]);
-          await guardian.PlayFiLicenseSale.setPublicSale(true);
+          await guardian.PlayFiLicenseSale.setPublicWhitelistSale(true);
           let tree = new PublicClaimsTree([
               {account: users[10].address, claimCap: BigInt("2"), referral: "REFERRAL"},
               {account: users[9].address, claimCap: BigInt("2"), referral: ""}
@@ -610,7 +610,7 @@ describe("PlayFiLicenseSale", () => {
 
       it("Claiming public whitelist licenses cannot be done if the proof is incorrect", async function () {
           await admin.PlayFiLicenseSale.setWhitelistTiers([1],[ethers.parseEther("0.01")],[2],[2]);
-          await guardian.PlayFiLicenseSale.setPublicSale(true);
+          await guardian.PlayFiLicenseSale.setPublicWhitelistSale(true);
           let tree = new PublicClaimsTree([
               {account: users[10].address, claimCap: BigInt("2"), referral: "REFERRAL"},
               {account: users[9].address, claimCap: BigInt("2"), referral: ""}
@@ -626,7 +626,7 @@ describe("PlayFiLicenseSale", () => {
       it("If a valid referral is applied, the correct comission will be paid to the qualified receiver", async function () {
           await admin.PlayFiLicenseSale.setWhitelistTiers([1],[ethers.parseEther("0.01")],[2],[4]);
           await users[11].PlayFiLicenseSale.setReferral("REFERRAL");
-          await guardian.PlayFiLicenseSale.setPublicSale(true);
+          await guardian.PlayFiLicenseSale.setPublicWhitelistSale(true);
           const startAmount = await ethers.provider.getBalance(users[11].address);
 
           // Referral (with code)
@@ -648,7 +648,7 @@ describe("PlayFiLicenseSale", () => {
       it("Claiming public whitelist licenses claims new public whitelist licenses and sets the correct on-chain state", async function () {
           await admin.PlayFiLicenseSale.setWhitelistTiers([1],[ethers.parseEther("0.01")],[2],[4]);
           await users[11].PlayFiLicenseSale.setReferral("REFERRAL");
-          await guardian.PlayFiLicenseSale.setPublicSale(true);
+          await guardian.PlayFiLicenseSale.setPublicWhitelistSale(true);
           const startAmount = await ethers.provider.getBalance(users[11].address);
 
           // Referral (with code)
@@ -678,6 +678,7 @@ describe("PlayFiLicenseSale", () => {
           await admin.PlayFiLicenseSale.setWhitelistTiers([1],[ethers.parseEther("0.02")],[1000],[4000]);
           await users[11].PlayFiLicenseSale.setReferral("REFERRAL");
           await guardian.PlayFiLicenseSale.setPublicSale(true);
+          await guardian.PlayFiLicenseSale.setPublicWhitelistSale(true);
 
           // Referral (with code): 10% commission, 10% discount
           const paymentDetailsSpecial = await contracts.PlayFiLicenseSale.paymentDetailsForReferral(2,1,"REFERRAL",false);
@@ -971,7 +972,7 @@ describe("PlayFiLicenseSale", () => {
 
       it("setWhitelistTiers sets the price, individual cap and total cap of the tier. It leaves the total amount of claims for the tiers a is.", async function () {
           await admin.PlayFiLicenseSale.setWhitelistTiers([1,2],[ethers.parseEther("0.01"),ethers.parseEther("0.02")],[1,2],[2,4]);
-          await guardian.PlayFiLicenseSale.setPublicSale(true);
+          await guardian.PlayFiLicenseSale.setPublicWhitelistSale(true);
 
           let tree = new PublicClaimsTree([
               {account: users[10].address, claimCap: BigInt("2"), referral: "REFERRAL"},

@@ -89,7 +89,7 @@ interface IPlayFiLicenseSale
     error InvalidCommission();
     error ReferralCodeInUse();
     error InvalidCode();
-    error PartnerReceiverAddressNotSet();
+    error PublicWhitelistSaleNotActive();
 
     function claimLicenseTeam(uint256 amount, bytes calldata data, bytes32[] calldata merkleProof) external;
 
