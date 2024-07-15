@@ -141,6 +141,7 @@ IPlayFiLicenseSale
         bytes32 node = keccak256(abi.encodePacked(index, msg.sender, claimCap));
         if (!MerkleProof.verify(merkleProof, friendsFamilyMerkleRoot, node)) revert InvalidProof();
         uint256 toPay = tiers[1].price * amount;
+        if(toPay == 0) revert InvalidPrice();
         if(msg.value < toPay) revert InsufficientPayment();
         friendsFamilyClaimsPerAddress[msg.sender] += amount;
         totalLicenses += amount;
@@ -160,6 +161,7 @@ IPlayFiLicenseSale
         bytes32 node = keccak256(abi.encodePacked(index, msg.sender, claimCap));
         if (!MerkleProof.verify(merkleProof, earlyAccessMerkleRoot, node)) revert InvalidProof();
         uint256 toPay = tiers[1].price * amount;
+        if(toPay == 0) revert InvalidPrice();
         if(msg.value < toPay) revert InsufficientPayment();
         earlyAccessClaimsPerAddress[msg.sender] += amount;
         totalLicenses += amount;
@@ -176,6 +178,11 @@ IPlayFiLicenseSale
         if(partnerClaimsPerTierPerAddress[partnerCode][tier][msg.sender] + amount > partnerTiers[partnerCode][tier].individualCap) revert IndividualTierCapExceeded();
         (uint256 toPay, uint256 commission,) = paymentDetailsForPartnerReferral(amount, tier, partnerCode, referral);
         if(msg.value < toPay) revert InsufficientPayment();
+        partnerReferrals[partnerCode].totalClaims += amount;
+        partnerTiers[partnerCode][tier].totalClaimed += amount;
+        partnerClaimsPerAddress[partnerCode][msg.sender] += amount;
+        partnerClaimsPerTierPerAddress[partnerCode][tier][msg.sender] += amount;
+        totalLicenses += amount;
         if(partnerReferrals[partnerCode].receiver != address(0)) {
             if(commission > 0) {
                 (bool sent, ) = payable(partnerReferrals[partnerCode].receiver).call{ value: commission }("");
@@ -190,10 +197,10 @@ IPlayFiLicenseSale
             }
             referrals[referral].totalClaims += amount;
         }
-        partnerReferrals[partnerCode].totalClaims += amount;
-        partnerTiers[partnerCode][tier].totalClaimed += amount;
-        partnerClaimsPerAddress[partnerCode][msg.sender] += amount;
-        totalLicenses += amount;
+        if(msg.value > toPay) {
+            (bool sent, ) = payable(msg.sender).call{ value: msg.value - toPay }("");
+            if (!sent) revert RefundPaymentFailed();
+        }
         emit PartnerLicensesClaimed(msg.sender, amount, tier, toPay, partnerCode, referral);
     }
 
@@ -208,15 +215,20 @@ IPlayFiLicenseSale
         if(claimsPerTierPerAddress[tier][msg.sender] + amount > tiers[tier].individualCap) revert IndividualTierCapExceeded();
         (uint256 toPay, uint256 commission,) = paymentDetailsForReferral(amount, tier, referral, false);
         if(msg.value < toPay) revert InsufficientPayment();
+        tiers[tier].totalClaimed += amount;
+        publicClaimsPerAddress[msg.sender] += amount;
+        totalLicenses += amount;
+        referrals[referral].totalClaims += amount;
+        claimsPerTierPerAddress[tier][msg.sender] += amount;
         if(commission > 0) {
             (bool sent, ) = payable(referrals[referral].receiver).call{ value: commission }("");
             if (!sent) revert CommissionPayoutFailed();
             emit CommissionPaid(referral, referrals[referral].receiver, commission);
         }
-        tiers[tier].totalClaimed += amount;
-        publicClaimsPerAddress[msg.sender] += amount;
-        totalLicenses += amount;
-        referrals[referral].totalClaims += amount;
+        if(msg.value > toPay) {
+            (bool sent, ) = payable(msg.sender).call{ value: msg.value - toPay }("");
+            if (!sent) revert RefundPaymentFailed();
+        }
         emit PublicLicensesClaimed(msg.sender, amount, tier, toPay, referral);
     }
 
@@ -238,15 +250,19 @@ IPlayFiLicenseSale
         }
         (uint256 toPay, uint256 commission,) = paymentDetailsForReferral(amount, tier, referral, true);
         if(msg.value < toPay) revert InsufficientPayment();
+        whitelistTiers[tier].totalClaimed += amount;
+        publicWhitelistClaimsPerAddressAndReferral[msg.sender][referral] += amount;
+        totalLicenses += amount;
+        referrals[referral].totalClaims += amount;
         if(commission > 0) {
             (bool sent, ) = payable(referrals[referral].receiver).call{ value: commission }("");
             if (!sent) revert CommissionPayoutFailed();
             emit CommissionPaid(referral, referrals[referral].receiver, commission);
         }
-        whitelistTiers[tier].totalClaimed += amount;
-        publicWhitelistClaimsPerAddressAndReferral[msg.sender][referral] += amount;
-        totalLicenses += amount;
-        referrals[referral].totalClaims += amount;
+        if(msg.value > toPay) {
+            (bool sent, ) = payable(msg.sender).call{ value: msg.value - toPay }("");
+            if (!sent) revert RefundPaymentFailed();
+        }
         emit PublicWhitelistLicensesClaimed(msg.sender, amount, tier, toPay, referral);
     }
 
@@ -322,7 +338,7 @@ IPlayFiLicenseSale
     /// @param isWhitelist Whether the tier is used for the whitelist sale or not
     /// @return tier The tier
     function getTier(uint256 id, bool isWhitelist) public view returns(Tier memory tier) {
-        if(isWhitelist) {
+        if(!isWhitelist) {
             tier = tiers[id];
         } else {
             tier = whitelistTiers[id];

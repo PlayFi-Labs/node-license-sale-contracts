@@ -90,6 +90,8 @@ interface IPlayFiLicenseSale
     error ReferralCodeInUse();
     error InvalidCode();
     error PublicWhitelistSaleNotActive();
+    error RefundPaymentFailed();
+    error InvalidPrice();
 
     function claimLicenseTeam(uint256 amount, bytes calldata data, bytes32[] calldata merkleProof) external;
 
