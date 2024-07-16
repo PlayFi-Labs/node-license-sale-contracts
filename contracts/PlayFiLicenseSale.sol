@@ -145,6 +145,10 @@ IPlayFiLicenseSale
         if(msg.value < toPay) revert InsufficientPayment();
         friendsFamilyClaimsPerAddress[msg.sender] += amount;
         totalLicenses += amount;
+        if(msg.value > toPay) {
+            (bool sent, ) = payable(msg.sender).call{ value: msg.value - toPay }("");
+            if (!sent) revert RefundPaymentFailed();
+        }
         emit FriendsFamilyLicensesClaimed(msg.sender, toPay, amount);
     }
 
@@ -165,6 +169,10 @@ IPlayFiLicenseSale
         if(msg.value < toPay) revert InsufficientPayment();
         earlyAccessClaimsPerAddress[msg.sender] += amount;
         totalLicenses += amount;
+        if(msg.value > toPay) {
+            (bool sent, ) = payable(msg.sender).call{ value: msg.value - toPay }("");
+            if (!sent) revert RefundPaymentFailed();
+        }
         emit EarlyAccessLicensesClaimed(msg.sender, toPay, amount);
     }
 
