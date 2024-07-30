@@ -121,7 +121,7 @@ const config: HardhatUserConfig = {
       300: "0xf558c6EECcf47ce88E644Ce48DD6ca9176e2C23b"
     },
     playFiLicenseSaleProxy: {
-      300: "0x08826Ef78a6D9D57136a654B5295c093593B3A31"
+      300: "0x0278fFD5473Ff48257550a579B3f5bfA04734bb2"
     }
   },
 };

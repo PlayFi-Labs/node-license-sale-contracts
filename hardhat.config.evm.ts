@@ -53,7 +53,7 @@ const config: HardhatUserConfig = {
     },
     arbitrumOne: {
       url: "https://arb1.arbitrum.io/rpc",
-      accounts: process.env.MAINNET_PRIVATE_KEY !== undefined ? [process.env.MAINNET_PRIVATE_KEY] : [],
+      accounts: process.env.ARBI_PRIVATE_KEY !== undefined ? [process.env.ARBI_PRIVATE_KEY] : [],
     },
     sepolia: {
       url: "https://sepolia.infura.io/v3/" + (process.env.INFURA_KEY !== undefined ? process.env.INFURA_KEY : ""),
@@ -76,7 +76,7 @@ const config: HardhatUserConfig = {
     apiKey: {
       mainnet: process.env.ETHERSCAN_API_KEY !== undefined ? process.env.ETHERSCAN_API_KEY : "",
       sepolia: process.env.ETHERSCAN_API_KEY !== undefined ? process.env.ETHERSCAN_API_KEY : "",
-      arbitrumOne: process.env.MAINNET_ARBISCAN_API_KEY !== undefined ? process.env.MAINNET_ARBISCAN_API_KEY : "",
+      arbitrumOne: process.env.ARBISCAN_API_KEY !== undefined ? process.env.ARBISCAN_API_KEY : "",
       arbitrumSepolia: process.env.ARBISCAN_API_KEY !== undefined ? process.env.ARBISCAN_API_KEY : "",
       polygonAmoy: process.env.POLYGONSCAN_API_KEY !== undefined ? process.env.POLYGONSCAN_API_KEY : "",
     },
@@ -102,43 +102,45 @@ const config: HardhatUserConfig = {
   namedAccounts: {
     deployer: {
       default: 0,
-      42161: 0, //TODO: set correct address
+      42161: "0x06975E4EFdA114EBFe39c85EcC4AC2FcdaC3934B",
     },
     deployerMultisig: {
       default: 1,
-      42161: 1, //TODO: set correct address
+      42161: "0x3a69E75706185E6f931005B47e6A6bc516caeECD",
       421614: "0x571E443ccd1A35fEb3AfCD9F4a72f589Ef7eA785",
       80002: "0x571E443ccd1A35fEb3AfCD9F4a72f589Ef7eA785"
     },
     admin: {
       default: 2,
-      42161: 2, //TODO: set correct address
+      42161: "0x3a69E75706185E6f931005B47e6A6bc516caeECD",
       421614: "0xf558c6EECcf47ce88E644Ce48DD6ca9176e2C23b",
       80002: "0xf558c6EECcf47ce88E644Ce48DD6ca9176e2C23b"
     },
     guardian: {
       default: 3,
-      42161: 3, //TODO: set correct address
+      42161: "0x4dE2c8986C03A8F9F10B5956606Fd74F5a0626BD",
       421614: 0,
       80002: 0
     },
     merkleManager: {
       default: 4,
-      42161: 4, //TODO: set correct address
+      42161: "0x37f367bebd31A77eF65B6387B3E6086c3869c2e3",
       421614: 0,
       80002: 0
     },
     referralManager: {
       default: 5,
-      42161: 5, //TODO: set correct address
+      42161: "0x37f367bebd31A77eF65B6387B3E6086c3869c2e3",
       421614: 0,
       80002: 0
     },
     executor: {
+      42161: "0xB14956f655256E9cd79A84d10302df21472e2a88",
       421614: "0xf558c6EECcf47ce88E644Ce48DD6ca9176e2C23b"
     },
     playFiLicenseSaleProxy: {
-      421614: "0xCc91412e293a575CaE8dcDE0B72DE754215198D6"
+      42161: "0x66F49158826a5A3953636ff63350bA815C9665AD",
+      421614: "0x7e63815F59228a23fd89bcf0Aa903C3835E2604b"
     }
   },
 };
