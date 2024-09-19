@@ -35,12 +35,12 @@ const config: HardhatUserConfig = {
   },
   networks: {
     hardhat: {
-      chainId: process.env.FORKING == "true" ? 42161 : 31337,
+      chainId: process.env.FORKING == "true" ? 1 : 31337,
       forking: {
         url:
-            "https://arbitrum-mainnet.infura.io/v3/" +
+            "https://mainnet.infura.io/v3/" +
             (process.env.INFURA_KEY !== undefined ? process.env.INFURA_KEY : ""),
-        blockNumber: 203592328,
+        blockNumber: 20776237,
         enabled: process.env.FORKING !== undefined && process.env.FORKING == "true" ? true : false,
       },
       accounts: {
@@ -103,18 +103,21 @@ const config: HardhatUserConfig = {
     deployer: {
       default: 0,
       42161: "0x06975E4EFdA114EBFe39c85EcC4AC2FcdaC3934B",
+      11155111: "0x96B71AD6b177B9CA96AC7d9b25088F0A956Fa25A"
     },
     deployerMultisig: {
       default: 1,
       42161: "0x3a69E75706185E6f931005B47e6A6bc516caeECD",
       421614: "0x571E443ccd1A35fEb3AfCD9F4a72f589Ef7eA785",
-      80002: "0x571E443ccd1A35fEb3AfCD9F4a72f589Ef7eA785"
+      80002: "0x571E443ccd1A35fEb3AfCD9F4a72f589Ef7eA785",
+      11155111: "0x571E443ccd1A35fEb3AfCD9F4a72f589Ef7eA785"
     },
     admin: {
       default: 2,
       42161: "0x3a69E75706185E6f931005B47e6A6bc516caeECD",
       421614: "0xf558c6EECcf47ce88E644Ce48DD6ca9176e2C23b",
-      80002: "0xf558c6EECcf47ce88E644Ce48DD6ca9176e2C23b"
+      80002: "0xf558c6EECcf47ce88E644Ce48DD6ca9176e2C23b",
+      11155111: "0xf558c6EECcf47ce88E644Ce48DD6ca9176e2C23b"
     },
     guardian: {
       default: 3,
@@ -126,7 +129,8 @@ const config: HardhatUserConfig = {
       default: 4,
       42161: "0x37f367bebd31A77eF65B6387B3E6086c3869c2e3",
       421614: 0,
-      80002: 0
+      80002: 0,
+      11155111: "0xf558c6EECcf47ce88E644Ce48DD6ca9176e2C23b"
     },
     referralManager: {
       default: 5,
