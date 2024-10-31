@@ -23,6 +23,8 @@ IPlayFiLicenseMint
 {
     using Strings for string;
 
+    bytes32 private constant _TYPE_HASH =
+        keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)");
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN");
     bytes32 public constant GUARDIAN_ROLE = keccak256("GUARDIAN");
     bytes32 public constant MERKLE_MANAGER_ROLE = keccak256("MERKLE_MANAGER");
@@ -35,6 +37,8 @@ IPlayFiLicenseMint
 
     mapping(address => uint256) public licensesMintedPerAddress;
 
+    uint256 public signatureChainId;
+
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
@@ -44,7 +48,8 @@ IPlayFiLicenseMint
         address admin,
         address guardian,
         address merkleManager,
-        address _playFiLicense
+        address _playFiLicense,
+        uint256 _signatureChainId
     ) public initializer {
         __EIP712_init("PlayFiLicenseMint", "1.0.0");
         __AccessControl_init();
@@ -64,6 +69,7 @@ IPlayFiLicenseMint
 
         paused = true;
         playFiLicense = IPlayFiLicense(_playFiLicense);
+        signatureChainId = _signatureChainId;
 
         emit ContractInitialized();
     }
@@ -113,6 +119,14 @@ IPlayFiLicenseMint
                 )
             )
         );
+    }
+
+    function _domainSeparatorCustom() private view returns (bytes32) {
+        return keccak256(abi.encode(_TYPE_HASH, _EIP712NameHash(), _EIP712VersionHash(), signatureChainId, address(this)));
+    }
+
+    function _hashTypedDataV4(bytes32 structHash) internal view override returns (bytes32) {
+        return ECDSAUpgradeable.toTypedDataHash(_domainSeparatorCustom(), structHash);
     }
 
     modifier onlyAdmin() {

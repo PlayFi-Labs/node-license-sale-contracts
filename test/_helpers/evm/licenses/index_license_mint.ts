@@ -45,7 +45,7 @@ export const setupIntegration = deployments.createFixture(async ({ ethers }) => 
 
   const PlayFiLicenseMintContractFactory = await ethers.getContractFactory("PlayFiLicenseMint");
   const playFiLicenseMint = (await upgrades.deployProxy(PlayFiLicenseMintContractFactory, [
-    admin, deployer, admin, await playFiLicense.getAddress()
+    admin, deployer, admin, await playFiLicense.getAddress(),42161
   ])) as unknown as PlayFiLicenseMint;
   await playFiLicenseMint.waitForDeployment();
 

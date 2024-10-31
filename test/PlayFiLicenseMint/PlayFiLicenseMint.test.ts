@@ -31,6 +31,7 @@ describe("PlayFiLicense", () => {
             ethers.ZeroAddress,
             ethers.ZeroAddress,
             ethers.ZeroAddress,
+            0
         ]),
       ).to.be.revertedWithCustomError(contracts.PlayFiLicense, "InvalidAddress");
     });
@@ -42,6 +43,7 @@ describe("PlayFiLicense", () => {
             ethers.ZeroAddress,
             ethers.ZeroAddress,
             ethers.ZeroAddress,
+              0
           ]),
       ).to.be.revertedWithCustomError(contracts.PlayFiLicense, "InvalidAddress");
     });
@@ -53,6 +55,7 @@ describe("PlayFiLicense", () => {
             deployer.address,
             ethers.ZeroAddress,
             ethers.ZeroAddress,
+              0
           ]),
       ).to.be.revertedWithCustomError(contracts.PlayFiLicense, "InvalidAddress");
     });
@@ -64,6 +67,7 @@ describe("PlayFiLicense", () => {
             deployer.address,
             admin.address,
             ethers.ZeroAddress,
+              0
           ]),
       ).to.be.revertedWithCustomError(contracts.PlayFiLicense, "InvalidAddress");
     });
@@ -74,7 +78,8 @@ describe("PlayFiLicense", () => {
         admin.address,
         deployer.address,
           admin.address,
-          await contracts.PlayFiLicense.getAddress()
+          await contracts.PlayFiLicense.getAddress(),
+          1
       ]) as unknown as PlayFiLicenseMint;
       await playFiLicenseMint.waitForDeployment();
       const adminRole = await playFiLicenseMint.ADMIN_ROLE();
@@ -89,6 +94,7 @@ describe("PlayFiLicense", () => {
       expect(await playFiLicenseMint.hasRole(merkleManagerRole, users[10].address)).to.be.equal(false);
       expect(await playFiLicenseMint.paused()).to.be.equal(true);
       expect(await playFiLicenseMint.playFiLicense()).to.be.equal(await contracts.PlayFiLicense.getAddress());
+        expect(await playFiLicenseMint.signatureChainId()).to.be.equal(1);
     });
 
       it("setting the mint merkle root can only be done by the merkle manager", async function () {
@@ -136,7 +142,7 @@ describe("PlayFiLicense", () => {
           const proof = tree.getProof(0, users[10].address, BigInt("2"));
           const data = ethers.AbiCoder.defaultAbiCoder().encode(["uint256","uint256"],[0,2]);
           await expect(users[10].PlayFiLicenseMint.mintLicenses(users[10].address,data,3,proof,"0x")).to.be.revertedWithCustomError(contracts.PlayFiLicenseMint,"MintCapExceeded");
-          const signature = await generateSignature(users[10].address, "PlayFiLicenseMint", 1, await contracts.PlayFiLicenseMint.getAddress(), "I allow my licenses to be minted on Ethereum L1 with the following address. Make sure you have ownership over this address on Ethereum L1!", users[9].address);
+          const signature = await generateSignature(users[10].address, "PlayFiLicenseMint", 42161, await contracts.PlayFiLicenseMint.getAddress(), "I allow my licenses to be minted on Ethereum L1 with the following address. Make sure you have ownership over this address on Ethereum L1!", users[9].address);
           await users[9].PlayFiLicenseMint.mintLicenses(users[10].address,data,2,proof,signature);
           await expect(users[9].PlayFiLicenseMint.mintLicenses(users[10].address,data,1,proof,signature)).to.be.revertedWithCustomError(contracts.PlayFiLicenseMint,"MintCapExceeded");
       });
@@ -150,7 +156,7 @@ describe("PlayFiLicense", () => {
           await admin.PlayFiLicenseMint.setMintMerkleRoot(tree.getHexRoot());
           const proof = tree.getProof(1, users[9].address, BigInt("2"));
           const data = ethers.AbiCoder.defaultAbiCoder().encode(["uint256","uint256"],[0,2]);
-          const signature = await generateSignature(users[10].address, "PlayFiLicenseMint", 1, await contracts.PlayFiLicenseMint.getAddress(), "I allow my licenses to be minted on Ethereum L1 with the following address. Make sure you have ownership over this address on Ethereum L1!", users[9].address);
+          const signature = await generateSignature(users[10].address, "PlayFiLicenseMint", 42161, await contracts.PlayFiLicenseMint.getAddress(), "I allow my licenses to be minted on Ethereum L1 with the following address. Make sure you have ownership over this address on Ethereum L1!", users[9].address);
           await expect(users[9].PlayFiLicenseMint.mintLicenses(users[10].address,data,1,proof,signature)).to.be.revertedWithCustomError(contracts.PlayFiLicenseMint,"InvalidProof");
       });
 
@@ -165,13 +171,13 @@ describe("PlayFiLicense", () => {
           const data = ethers.AbiCoder.defaultAbiCoder().encode(["uint256","uint256"],[0,2]);
           let signature = await generateSignature(users[10].address, "PlayFiLicenseMin", 1, await contracts.PlayFiLicenseMint.getAddress(), "I allow my licenses to be minted on Ethereum L1 with the following address. Make sure you have ownership over this address on Ethereum L1!", users[9].address);
           await expect(users[9].PlayFiLicenseMint.mintLicenses(users[10].address,data,1,proof,signature)).to.be.revertedWithCustomError(contracts.PlayFiLicenseMint,"InvalidSignature");
-          signature = await generateSignature(users[10].address, "PlayFiLicenseMint", 421614, await contracts.PlayFiLicenseMint.getAddress(), "I allow my licenses to be minted on Ethereum L1 with the following address. Make sure you have ownership over this address on Ethereum L1!", users[9].address);
+          signature = await generateSignature(users[10].address, "PlayFiLicenseMint", 42162, await contracts.PlayFiLicenseMint.getAddress(), "I allow my licenses to be minted on Ethereum L1 with the following address. Make sure you have ownership over this address on Ethereum L1!", users[9].address);
           await expect(users[9].PlayFiLicenseMint.mintLicenses(users[10].address,data,1,proof,signature)).to.be.revertedWithCustomError(contracts.PlayFiLicenseMint,"InvalidSignature");
-          signature = await generateSignature(users[10].address, "PlayFiLicenseMint", 1, await contracts.PlayFiLicense.getAddress(), "I allow my licenses to be minted on Ethereum L1 with the following address. Make sure you have ownership over this address on Ethereum L1!", users[9].address);
+          signature = await generateSignature(users[10].address, "PlayFiLicenseMint", 42161, await contracts.PlayFiLicense.getAddress(), "I allow my licenses to be minted on Ethereum L1 with the following address. Make sure you have ownership over this address on Ethereum L1!", users[9].address);
           await expect(users[9].PlayFiLicenseMint.mintLicenses(users[10].address,data,1,proof,signature)).to.be.revertedWithCustomError(contracts.PlayFiLicenseMint,"InvalidSignature");
-          signature = await generateSignature(users[10].address, "PlayFiLicenseMint", 1, await contracts.PlayFiLicenseMint.getAddress(), "You allow my licenses to be minted on Ethereum L1 with the following address. Make sure you have ownership over this address on Ethereum L1!", users[9].address);
+          signature = await generateSignature(users[10].address, "PlayFiLicenseMint", 42161, await contracts.PlayFiLicenseMint.getAddress(), "You allow my licenses to be minted on Ethereum L1 with the following address. Make sure you have ownership over this address on Ethereum L1!", users[9].address);
           await expect(users[9].PlayFiLicenseMint.mintLicenses(users[10].address,data,1,proof,signature)).to.be.revertedWithCustomError(contracts.PlayFiLicenseMint,"InvalidSignature");
-          signature = await generateSignature(users[10].address, "PlayFiLicenseMint", 1, await contracts.PlayFiLicenseMint.getAddress(), "I allow my licenses to be minted on Ethereum L1 with the following address. Make sure you have ownership over this address on Ethereum L1!", users[10].address);
+          signature = await generateSignature(users[10].address, "PlayFiLicenseMint", 42161, await contracts.PlayFiLicenseMint.getAddress(), "I allow my licenses to be minted on Ethereum L1 with the following address. Make sure you have ownership over this address on Ethereum L1!", users[10].address);
           await expect(users[9].PlayFiLicenseMint.mintLicenses(users[10].address,data,1,proof,signature)).to.be.revertedWithCustomError(contracts.PlayFiLicenseMint,"InvalidSignature");
       });
 
@@ -184,7 +190,7 @@ describe("PlayFiLicense", () => {
           await admin.PlayFiLicenseMint.setMintMerkleRoot(tree.getHexRoot());
           const proof = tree.getProof(0, users[10].address, BigInt("2"));
           const data = ethers.AbiCoder.defaultAbiCoder().encode(["uint256","uint256"],[0,2]);
-          let signature = await generateSignature(users[10].address, "PlayFiLicenseMint", 1, await contracts.PlayFiLicenseMint.getAddress(), "I allow my licenses to be minted on Ethereum L1 with the following address. Make sure you have ownership over this address on Ethereum L1!", users[9].address);
+          let signature = await generateSignature(users[10].address, "PlayFiLicenseMint", 42161, await contracts.PlayFiLicenseMint.getAddress(), "I allow my licenses to be minted on Ethereum L1 with the following address. Make sure you have ownership over this address on Ethereum L1!", users[9].address);
           expect(await contracts.PlayFiLicenseMint.licensesMintedPerAddress(users[10].address)).to.be.equal(0);
           expect(await contracts.PlayFiLicense.currentLicenseId()).to.be.equal(0);
           expect(await contracts.PlayFiLicense.totalSupply()).to.be.equal(0);

@@ -103,7 +103,6 @@ const config: HardhatUserConfig = {
     deployer: {
       default: 0,
       42161: "0x06975E4EFdA114EBFe39c85EcC4AC2FcdaC3934B",
-      11155111: "0x96B71AD6b177B9CA96AC7d9b25088F0A956Fa25A"
     },
     deployerMultisig: {
       default: 1,
