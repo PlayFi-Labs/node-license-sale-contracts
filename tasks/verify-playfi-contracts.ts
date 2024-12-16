@@ -6,15 +6,15 @@ import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 task(VERIFYPLAYFICONTRACTS, "Verifies the PlayFi contracts", async (_taskArgs, hre) => {
   const { deployments, upgrades } = hre;
 
-  let playFiLicenseSaleImpl = await upgrades.erc1967.getImplementationAddress(
+  let playFiLicenseMintImpl = await upgrades.erc1967.getImplementationAddress(
       (
-          await deployments.get("PlayFiLicenseSale")
+          await deployments.get("PlayFiLicense")
       ).address,
   );
 
   try {
     await hre.run("verify:verify", {
-      address: playFiLicenseSaleImpl,
+      address: playFiLicenseMintImpl,
       constructorArguments: [],
     });
   } catch (e) {

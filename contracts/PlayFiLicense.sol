@@ -32,7 +32,7 @@ IPlayFiLicense
     }
 
     function initialize(address admin, address licenseManager) public initializer {
-        __ERC721_init("PlayFi Node License", "PLAYFI_NODE_LICENSE");
+        __ERC721_init("LIFT Node License", "LIFT_NODE_LICENSE");
         __ERC721Enumerable_init();
         __AccessControl_init();
         __ReentrancyGuard_init();
@@ -51,13 +51,13 @@ IPlayFiLicense
         address ownerAddress = ownerOf(tokenId);
         string memory svg = string(
             abi.encodePacked(
-            "<svg width='500' height='500' viewBox='-250 -30 1000 1000' fill='none' style='background-color:#000' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink'><text x='-150' y='630' font-size='30' fill='#fff' font-family='Inter-n, sans-serif'>PlayFi Node License Id: ",
+            "<svg width='500' height='500' viewBox='-250 -30 1000 1000' fill='none' style='background-color:#000' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink'> <g transform='translate(-320, 50) scale(0.6)'> <defs> <style> .cls-1 {fill: #6af3de;}</style> </defs> <polygon class='cls-1' points='439.37 225.54 286.25 225.54 220.62 645.55 592.5 645.55 610 523.05 391.25 523.05 439.37 225.54'/> <polyline class='cls-1' points='701.87 225.54 663.67 470.06 859.28 225.54'/> <polygon class='cls-1' points='819.01 470.07 663.67 470.07 636.25 645.55 793.12 645.55 819.01 470.07'/> <polyline class='cls-1' points='922.57 225.54 896.68 403.9 1049.15 403.9 856.4 645.55 968.04 645.55 968.05 645.65 1010.15 645.65 1031.5 513.28 1200.62 513.28 1218.12 403.9 1049.15 403.9 1058.15 348.04 1266.25 348.04 1283.75 225.54'/> <polygon class='cls-1' points='1310 225.54 1290.31 348.04 1406.25 348.04 1362.5 645.55 1520 645.55 1563.75 348.04 1686.25 348.04 1699.38 225.54 1310 225.54'/> </g> <text x='-150' y='630' font-size='30' fill='#fff' font-family='Inter-n, sans-serif'>LIFT Node License Id: ",
             tokenId.toString(),
             "</text><text x='-150' y='700' font-size='30' fill='#fff' font-family='Inter-n, sans-serif'>Owner: ",
             StringsUpgradeable.toHexString(uint160(ownerAddress)),
             "</text><text x='-150' y='770' font-size='30' fill='#fff' font-family='Inter-n, sans-serif'># Licenses Owned by the Owner: ",
             balanceOf(ownerAddress).toString(),
-            "</text><text font-size='15.5' fill='#fff' font-style='italic' font-family='Inter-n, sans-serif'><tspan x='-200' y='860'>Copyright 2024 PlayFI Foundation</tspan> <tspan x='-200' y='900'>The Node Software is licensed under the PlayFi license located at <a fill='#fff' xlink:href='https://www.playfi.ai/playfi-node-software-license'>https://www.playfi.ai/playfi-node-software-license</a> (&quot;License&quot;). </tspan> <tspan x='-200' y='920'>You may only use the Node Software in accordance with the conditions set forth in the License. </tspan>  <tspan x='-200' y='940'> You may obtain a copy of the Node Software at [insert URL].</tspan></text><path d='M413.192 376.075 238.19 477.112l-34.411-19.867v72.964l34.411 19.868 238.19-137.52V137.519L238.19 0 0 137.519v275.038l169.368 97.785V235.303l68.821-39.734 68.821 39.734v79.468l-68.821 39.734-34.411-19.867v72.964l34.411 19.867 132.01-76.216V198.821l-132.01-76.216-132.01 76.216v202.075l-42.99-24.821V174.001L238.19 72.964l175.002 101.037z' fill='#fff'/><path d='M413.192 376.075 238.19 477.112l-34.411-19.867v72.964l34.411 19.868 238.19-137.52V137.519L238.19 0 0 137.519v275.038l169.368 97.785V235.303l68.821-39.734 68.821 39.734v79.468l-68.821 39.734-34.411-19.867v72.964l34.411 19.867 132.01-76.216V198.821l-132.01-76.216-132.01 76.216v202.075l-42.99-24.821V174.001L238.19 72.964l175.002 101.037z' fill='url(#a)'/><defs><linearGradient id='a' x1='488.389' y1='8.131' x2='-179.044' y2='489.909' gradientUnits='userSpaceOnUse'><stop stop-color='#FFE70F'/><stop offset='.374' stop-color='#FF4DD8'/><stop offset='.806' stop-color='#4685FF'/></linearGradient></defs></svg>")
+            "</text><text font-size='15.5' fill='#fff' font-style='italic' font-family='Inter-n, sans-serif'><tspan x='-200' y='860'>Copyright 2024 LIFT Foundation</tspan> <tspan x='-200' y='900'>The Node Software is licensed under the LIFT license located at <a fill='#fff' xlink:href='https://www.liftdata.ai/lift-node-software-license'>https://www.liftdata.ai/lift-node-software-license</a> (&quot;License&quot;). </tspan> <tspan x='-200' y='920'>You may only use the Node Software in accordance with the conditions set forth in the License. </tspan>  <tspan x='-200' y='940'> You may obtain a copy of the Node Software at <a fill='#fff' xlink:href='https://www.liftdata.ai/node-download'>https://www.liftdata.ai/node-download</a>.</tspan></text></svg>")
         );
         string memory image = Base64Upgradeable.encode(bytes(svg));
         string memory json = Base64Upgradeable.encode(
@@ -66,11 +66,11 @@ IPlayFiLicense
                     abi.encodePacked(
                         '{"name": "License #',
                         tokenId.toString(),
-                        '", "description": "PlayFi Node License", "image": "data:image/svg+xml;base64,',
+                        '", "description": "LIFT Node License", "image": "data:image/svg+xml;base64,',
                         image,
                         '", "attributes": [{"trait_type": "Owner", "value": "',
                         StringsUpgradeable.toHexString(uint160(ownerAddress)),
-                        '"}, {"trait_type": "Legal", "value": "Copyright 2024 PlayFI Foundation. The Node Software is licensed under the PlayFi license located at https://www.playfi.ai/playfi-node-software-license ("License"). You may only use the Node Software in accordance with the conditions set forth in the License. You may obtain a copy of the Node Software at [insert URL]."}]}'
+                        '"}, {"trait_type": "Legal", "value": "Copyright 2024 LIFT Foundation. The Node Software is licensed under the LIFT license located at https://www.liftdata.ai/lift-node-software-license (License). You may only use the Node Software in accordance with the conditions set forth in the License. You may obtain a copy of the Node Software at https://www.liftdata.ai/node-download."}]}'
                     )
                 )
             )

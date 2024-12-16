@@ -17,7 +17,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     } = await getNamedAccounts();
 
     const contractName = "PlayFiLicenseSale";
-
     const provider = Provider.getDefaultProvider(types.Network.Sepolia);
     const ethProvider = hre.ethers.getDefaultProvider("sepolia");
 

@@ -10,28 +10,21 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const {
         deployer,
         deployerMultisig,
-        admin,
-        merkleManager
     } = await getNamedAccounts();
 
-    let playFiLicense = (await deployments.get("PlayFiLicense")).address;
 
-    await deploy("PlayFiLicenseMint", {
-        contract: "PlayFiLicenseMint",
+    await deploy("PlayFiLicense", {
+        contract: "PlayFiLicense",
         from: deployer,
         proxy: {
             owner: deployerMultisig,
             proxyContract: "OpenZeppelinTransparentProxy",
-            execute: {
-                methodName: "initialize",
-                args: [admin, deployer, merkleManager, playFiLicense,42161],
-            },
-            upgradeIndex: 0,
+            upgradeIndex: 1,
         },
     });
 
     return true;
 };
 export default func;
-func.id = "DeployPlayFiLicenseMint";
-func.tags = ["DeployPlayFiLicenseMint"];
+func.id = "UpgradePlayFiLicense";
+func.tags = ["UpgradePlayFiLicense"];
